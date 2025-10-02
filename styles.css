@@ -5,5 +5,5 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;backgrou
 h1{font-size:28px} .btn{display:inline-block;padding:10px 14px;background:#17a2ad;color:#fff;border-radius:10px;text-decoration:none}
 #map{height:520px;border-radius:12px;border:1px solid #d7e8ec}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.input{padding:10px 12px;border:2px solid #2e6f76;border-radius:10px;background:#2FC2D0;color:#91EBE5}
+.input{padding:10px 12px;border:2px solid #2FC2D0;border-radius:10px;background:#1A6B72;color:#2FC2D0}
 .button{padding:10px 14px;border-radius:10px;border:none;background:#17a2ad;color:#fff}
