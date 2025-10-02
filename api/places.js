@@ -1,3 +1,4 @@
+// api/places.js
 export default async function handler(req, res) {
   try {
     const { lat, lng, q = 'restaurant', limit = 30, bbox } = req.query || {};
@@ -5,7 +6,7 @@ export default async function handler(req, res) {
     if (!token) return res.status(500).json({ error: 'Missing MAPBOX_TOKEN' });
     if (!lat || !lng) return res.status(400).json({ error: 'lat/lng required' });
 
-    // --- 1) Mapbox POIs (better language + optional bbox) ---
+    // --- 1) Mapbox POIs ---
     const base = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`;
     const params = new URLSearchParams({
       access_token: token,
@@ -14,13 +15,12 @@ export default async function handler(req, res) {
       limit: String(limit),
       autocomplete: 'true',
       language: 'ar,en', // Arabic + English
-      country: 'AE'      // bias to UAE (adjust if you want wider search)
+      country: 'AE'      // bias to UAE
     });
-    if (bbox) params.set('bbox', bbox); // minLon,minLat,maxLon,maxLat from your map
+    if (bbox) params.set('bbox', bbox); // minLon,minLat,maxLon,maxLat from client
 
     const r = await fetch(`${base}?${params}`);
-    const ok = r.ok;
-    const data = ok ? await r.json() : { features: [] };
+    const data = r.ok ? await r.json() : { features: [] };
     let features = (data.features || []).map(f => ({
       id: f.id,
       text: f.text,
@@ -29,10 +29,10 @@ export default async function handler(req, res) {
       properties: f.properties || {}
     }));
 
-    // --- 2) Fallback to OpenStreetMap (Overpass) if results are thin ---
+    // --- 2) Fallback: OpenStreetMap (Overpass) ---
     if (features.length === 0) {
-      const radiusKm = bbox ? approxRadiusKmFromBbox(bbox) : 3; // derive from screen if possible
-      const radius = Math.max(1500, Math.min(radiusKm * 1000, 8000)); // 1.5–8 km
+      const radiusKm = bbox ? approxRadiusKmFromBbox(bbox) : 3;
+      const radius = Math.max(1500, Math.min(radiusKm * 1000, 8000)); // 1.5–8km
       const filters = buildOSMFilters(q);
 
       const query = `
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
             : [el.center?.lon, el.center?.lat];
           return {
             id: `${el.type}/${el.id}`,
-            text: el.tags?.name || (el.tags?.brand ? `${el.tags.brand}` : 'Place'),
+            text: el.tags?.name || el.tags?.brand || 'Place',
             place_name: buildOSMName(el),
             center: latlon,
             properties: { source: 'osm', amenity: el.tags?.amenity || '', cuisine: el.tags?.cuisine || '' }
@@ -67,9 +67,9 @@ export default async function handler(req, res) {
     }
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-    return res.status(200).json({ places: features });
+    res.status(200).json({ places: features });
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'Unknown error' });
+    res.status(500).json({ error: e.message || 'Unknown error' });
   }
 }
 
@@ -78,12 +78,10 @@ function escapeRegex(s=''){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 function buildOSMFilters(q){
   const s = (q||'').trim().toLowerCase();
-  // broad restaurant-like amenities
   const base = '["amenity"~"restaurant|cafe|fast_food|ice_cream|food_court"]';
 
   if (!s || s === 'restaurant') return base;
 
-  // cuisine shortcuts (expand as you like)
   const cuisines = {
     burger: 'burger|american',
     pizza: 'pizza|italian',
@@ -99,27 +97,22 @@ function buildOSMFilters(q){
     vegan: 'vegan|vegetarian'
   };
 
-  if (cuisines[s]) {
-    return `${base}["cuisine"~"${cuisines[s]}",i]`;
-  }
+  if (cuisines[s]) return `${base}["cuisine"~"${cuisines[s]}",i]`;
 
-  // brand/name/operator match for specific restaurants
   const esc = escapeRegex(q);
   return `${base}[~"^(name|brand|operator)$"~"${esc}",i]`;
 }
 
 function buildOSMName(el){
   const t = el.tags || {};
-  const parts = [t.name, t.brand, t['addr:street'], t['addr:city']].filter(Boolean);
-  return parts.join(', ');
+  return [t.name, t.brand, t['addr:street'], t['addr:city']].filter(Boolean).join(', ');
 }
 
 function approxRadiusKmFromBbox(bbox){
   try {
     const [w,s,e,n] = bbox.split(',').map(parseFloat);
-    const dx = (e - w) * 111; // km per degree (approx)
-    const dy = (n - s) * 111;
+    const dx = (e - w) * 111, dy = (n - s) * 111;
     const diag = Math.sqrt(dx*dx + dy*dy);
-    return Math.max(1.5, Math.min(diag/2, 8)); // clamp
+    return Math.max(1.5, Math.min(diag/2, 8));
   } catch { return 3; }
 }
