@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
   try {
-    const { lat, lng, q = 'restaurant', limit = 20, bbox } = req.query || {};
+    const { lat, lng, q = 'restaurant', limit = 30, bbox } = req.query || {};
     const token = process.env.MAPBOX_TOKEN;
     if (!token) return res.status(500).json({ error: 'Missing MAPBOX_TOKEN' });
     if (!lat || !lng) return res.status(400).json({ error: 'lat/lng required' });
 
-    // 1) Try Mapbox Geocoding (POIs) — with optional bbox from the current map view
+    // --- 1) Mapbox POIs (better language + optional bbox) ---
     const base = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json`;
     const params = new URLSearchParams({
       access_token: token,
@@ -13,9 +13,11 @@ export default async function handler(req, res) {
       proximity: `${lng},${lat}`,
       limit: String(limit),
       autocomplete: 'true',
-      language: 'en'
+      language: 'ar,en', // Arabic + English
+      country: 'AE'      // bias to UAE (adjust if you want wider search)
     });
-    if (bbox) params.set('bbox', bbox); // format: minLon,minLat,maxLon,maxLat
+    if (bbox) params.set('bbox', bbox); // minLon,minLat,maxLon,maxLat from your map
+
     const r = await fetch(`${base}?${params}`);
     const ok = r.ok;
     const data = ok ? await r.json() : { features: [] };
@@ -27,19 +29,17 @@ export default async function handler(req, res) {
       properties: f.properties || {}
     }));
 
-    // 2) Fallback to OpenStreetMap Overpass if Mapbox returned nothing
+    // --- 2) Fallback to OpenStreetMap (Overpass) if results are thin ---
     if (features.length === 0) {
-      const radius = 3000; // meters around the center
-      // filter by amenity types; if q not 'restaurant', try to match name
-      const nameFilter =
-        q && q !== 'restaurant'
-          ? `[name~"${escapeRegex(q)}",i]`
-          : '';
+      const radiusKm = bbox ? approxRadiusKmFromBbox(bbox) : 3; // derive from screen if possible
+      const radius = Math.max(1500, Math.min(radiusKm * 1000, 8000)); // 1.5–8 km
+      const filters = buildOSMFilters(q);
+
       const query = `
         [out:json][timeout:25];
         (
-          node(around:${radius},${lat},${lng})["amenity"~"restaurant|cafe|fast_food|ice_cream|food_court"]${nameFilter};
-          way (around:${radius},${lat},${lng})["amenity"~"restaurant|cafe|fast_food|ice_cream|food_court"]${nameFilter};
+          node(around:${radius},${lat},${lng})${filters};
+          way (around:${radius},${lat},${lng})${filters};
         );
         out center ${limit};
       `;
@@ -48,6 +48,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ data: query })
       });
+
       if (or.ok) {
         const od = await or.json();
         features = (od.elements || []).map(el => {
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
             text: el.tags?.name || (el.tags?.brand ? `${el.tags.brand}` : 'Place'),
             place_name: buildOSMName(el),
             center: latlon,
-            properties: { source: 'osm', amenity: el.tags?.amenity || '' }
+            properties: { source: 'osm', amenity: el.tags?.amenity || '', cuisine: el.tags?.cuisine || '' }
           };
         }).filter(f => f.center && f.center[0] != null && f.center[1] != null);
       }
@@ -72,10 +73,53 @@ export default async function handler(req, res) {
   }
 }
 
-// helpers
+// ---------- helpers ----------
 function escapeRegex(s=''){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function buildOSMFilters(q){
+  const s = (q||'').trim().toLowerCase();
+  // broad restaurant-like amenities
+  const base = '["amenity"~"restaurant|cafe|fast_food|ice_cream|food_court"]';
+
+  if (!s || s === 'restaurant') return base;
+
+  // cuisine shortcuts (expand as you like)
+  const cuisines = {
+    burger: 'burger|american',
+    pizza: 'pizza|italian',
+    cafe: 'cafe|coffee_shop|tea',
+    coffee: 'cafe|coffee_shop',
+    shawarma: 'shawarma|middle_eastern|arabic',
+    sushi: 'sushi|japanese',
+    indian: 'indian',
+    chinese: 'chinese',
+    thai: 'thai',
+    lebanese: 'lebanese',
+    bakery: 'bakery|cake|pastry|dessert',
+    vegan: 'vegan|vegetarian'
+  };
+
+  if (cuisines[s]) {
+    return `${base}["cuisine"~"${cuisines[s]}",i]`;
+  }
+
+  // brand/name/operator match for specific restaurants
+  const esc = escapeRegex(q);
+  return `${base}[~"^(name|brand|operator)$"~"${esc}",i]`;
+}
+
 function buildOSMName(el){
   const t = el.tags || {};
   const parts = [t.name, t.brand, t['addr:street'], t['addr:city']].filter(Boolean);
   return parts.join(', ');
+}
+
+function approxRadiusKmFromBbox(bbox){
+  try {
+    const [w,s,e,n] = bbox.split(',').map(parseFloat);
+    const dx = (e - w) * 111; // km per degree (approx)
+    const dy = (n - s) * 111;
+    const diag = Math.sqrt(dx*dx + dy*dy);
+    return Math.max(1.5, Math.min(diag/2, 8)); // clamp
+  } catch { return 3; }
 }
