@@ -25,7 +25,9 @@ function add(features){layer.clearLayers();(features||[]).forEach(f=>{const [lon
 
 async function search(){
   const c=map.getCenter();const q=document.getElementById('q').value.trim()||'restaurant';
-  const r=await fetch(`/api/places?lat=${c.lat}&lng=${c.lng}&q=${encodeURIComponent(q)}`);
+  const b = map.getBounds();
+  const bbox = `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
+  const r = await fetch(`/api/places?lat=${c.lat}&lng=${c.lng}&q=${encodeURIComponent(q)}&bbox=${encodeURIComponent(bbox)}`);
   const data=await r.json();if(data.error){alert('API error: '+data.error);return} add(data.places);
 }
 document.getElementById('search').onclick=search;
