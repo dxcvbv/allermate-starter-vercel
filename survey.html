@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Allergy Survey — AllerMate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .wrap{max-width:900px;margin:28px auto;padding:16px}
+    form .row{display:grid;gap:8px;margin:10px 0}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:800px){.two{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header class="nav">
+  <div class="brand">AllerMate</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="welcome.html">Welcome</a>
+    <a href="search.html">Search</a>
+    <a href="signin.html">Sign In</a>
+    <a href="account.html">Account</a>
+  </nav>
+</header>
+
+<main class="wrap card">
+  <h1>Allergy Survey</h1>
+  <form id="form">
+    <div class="row">
+      <label>Main allergies (comma-separated)</label>
+      <input class="input" id="allergies" placeholder="peanut, sesame, egg"/>
+    </div>
+    <div class="row two">
+      <div>
+        <label>Intolerances</label>
+        <input class="input" id="intolerances" placeholder="lactose, gluten"/>
+      </div>
+      <div>
+        <label>Diet</label>
+        <select class="input" id="diet">
+          <option value="">None</option>
+          <option>Vegan</option><option>Vegetarian</option>
+          <option>Halal</option><option>Kosher</option>
+        </select>
+      </div>
+    </div>
+    <div class="row two">
+      <div>
+        <label>Epinephrine auto-injector</label>
+        <select class="input" id="epi"><option>No</option><option>Yes</option></select>
+      </div>
+      <div>
+        <label>Preferred substitutions</label>
+        <input class="input" id="subs" placeholder="oat milk, egg-free mayo"/>
+      </div>
+    </div>
+    <div class="row">
+      <label>Notes</label>
+      <textarea class="input" id="notes" rows="3" placeholder="Cross-contact concerns, restaurant tips, etc."></textarea>
+    </div>
+    <button class="button" type="submit">Save</button>
+    <a class="button ghost" href="account.html">Back to Account</a>
+  </form>
+</main>
+
+<script>
+const s = JSON.parse(localStorage.getItem('allermate:survey')||'{}');
+for (const k of ['allergies','intolerances','diet','epi','subs','notes']) {
+  const el = document.getElementById(k); if (el && s[k]) el.value = s[k];
+}
+document.getElementById('form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const out = {
+    allergies: document.getElementById('allergies').value.trim(),
+    intolerances: document.getElementById('intolerances').value.trim(),
+    diet: document.getElementById('diet').value,
+    epi: document.getElementById('epi').value,
+    subs: document.getElementById('subs').value.trim(),
+    notes: document.getElementById('notes').value.trim()
+  };
+  localStorage.setItem('allermate:survey', JSON.stringify(out));
+  alert('Survey saved.');
+  location.href = 'account.html';
+});
+</script>
+</body>
+</html>
