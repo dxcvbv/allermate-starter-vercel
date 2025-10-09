@@ -45,7 +45,6 @@
       background:#1a6b72; color:#eaf9fb; font-family:inherit; font-size:14px;
     }
     .chat-input .send{ padding:10px 14px; border:none; border-radius:10px; background:#17a2ad; color:#fff; font-weight:700; }
-    .chat-sub{ font-size:12px; color:#3a5560; margin-top:2px; }
     .chat-tools{ font-size:12px; color:#dff8fb; opacity:0.9; }
     .chat-tools a{ color:#fff; text-decoration:underline; cursor:pointer; }
   </style>
@@ -203,60 +202,55 @@
     });
     chatSend.onclick = doSend;
 
-    <script>
-async function doSend(){
-  const text = chatInput.value.trim();
-  if (!text) return;
+    async function doSend(){
+      const text = chatInput.value.trim();
+      if (!text) return;
 
-  // push user message
-  conversation.push({ role:'user', content:text });
-  saveChat(conversation);
-  render();
-  chatInput.value = '';
-  chatInput.disabled = true; chatSend.disabled = true;
+      // push user message
+      conversation.push({ role:'user', content:text });
+      saveChat(conversation);
+      render();
+      chatInput.value = '';
+      chatInput.disabled = true; chatSend.disabled = true;
 
-  // typing indicator
-  conversation.push({ role:'assistant', content:'…' });
-  render();
+      // typing indicator
+      conversation.push({ role:'assistant', content:'…' });
+      render();
 
-  try{
-    const profile = {
-      survey: JSON.parse(localStorage.getItem('allermate:survey') || '{}'),
-      history: JSON.parse(localStorage.getItem('allermate:history') || '{}')
-    };
+      try{
+        const profile = {
+          survey: JSON.parse(localStorage.getItem('allermate:survey') || '{}'),
+          history: JSON.parse(localStorage.getItem('allermate:history') || '{}')
+        };
 
-    const r = await fetch('/api/chat', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        // keep history short to save tokens
-        messages: conversation.filter(m => m.content !== '…').slice(-10),
-        profile
-      })
-    });
+        const r = await fetch('/api/chat', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            messages: conversation.filter(m => m.content !== '…').slice(-10),
+            profile
+          })
+        });
 
-    const data = await r.json();
+        const data = await r.json();
 
-    conversation.pop(); // remove typing
-    if (data.error) {
-      const msg = data.details ? `${data.error}: ${String(data.details).slice(0,200)}` : data.error;
-      conversation.push({ role:'assistant', content: `API error — ${msg}` });
-    } else {
-      conversation.push({ role:'assistant', content: data.answer || 'No reply.' });
-    }
-  } catch(err){
-    conversation.pop();
-    conversation.push({ role:'assistant', content:'Network error. Please try again.' });
-    console.error(err);
-  } finally{
-    saveChat(conversation);
-    render();
-    chatInput.disabled = false; chatSend.disabled = false;
-    chatInput.focus();
-  }
-}
-</script>
-
+        conversation.pop(); // remove typing
+        if (data.error) {
+          const msg = data.details ? `${data.error}: ${String(data.details).slice(0,200)}` : data.error;
+          conversation.push({ role:'assistant', content: `API error — ${msg}` });
+        } else {
+          conversation.push({ role:'assistant', content: data.answer || 'No reply.' });
+        }
+      } catch(err){
+        conversation.pop();
+        conversation.push({ role:'assistant', content:'Network error. Please try again.' });
+        console.error(err);
+      } finally{
+        saveChat(conversation);
+        render();
+        chatInput.disabled = false; chatSend.disabled = false;
+        chatInput.focus();
+      }
     }
   </script>
 </body>
