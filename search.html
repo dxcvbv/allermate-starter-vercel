@@ -203,51 +203,60 @@
     });
     chatSend.onclick = doSend;
 
-    async function doSend(){
-      const text = chatInput.value.trim();
-      if (!text) return;
-      // push user msg
-      conversation.push({ role:'user', content:text });
-      saveChat(conversation);
-      render();
-      chatInput.value = '';
-      chatInput.disabled = true; chatSend.disabled = true;
+    <script>
+async function doSend(){
+  const text = chatInput.value.trim();
+  if (!text) return;
 
-      // typing indicator
-      conversation.push({ role:'assistant', content:'…' });
-      render();
+  // push user message
+  conversation.push({ role:'user', content:text });
+  saveChat(conversation);
+  render();
+  chatInput.value = '';
+  chatInput.disabled = true; chatSend.disabled = true;
 
-      try{
-        // profile from localStorage (if present)
-        const profile = {
-          survey: JSON.parse(localStorage.getItem('allermate:survey') || '{}'),
-          history: JSON.parse(localStorage.getItem('allermate:history') || '{}')
-        };
+  // typing indicator
+  conversation.push({ role:'assistant', content:'…' });
+  render();
 
-        const r = await fetch('/api/chat', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({
-            messages: conversation.filter(m=>m.content !== '…'), // skip indicator
-            profile
-          })
-        });
-        const data = await r.json();
+  try{
+    const profile = {
+      survey: JSON.parse(localStorage.getItem('allermate:survey') || '{}'),
+      history: JSON.parse(localStorage.getItem('allermate:history') || '{}')
+    };
 
-        // replace typing indicator with real message
-        conversation.pop();
-        conversation.push({ role:'assistant', content: data.answer || 'Sorry, I could not get a response right now.' });
+    const r = await fetch('/api/chat', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        // keep history short to save tokens
+        messages: conversation.filter(m => m.content !== '…').slice(-10),
+        profile
+      })
+    });
 
-      } catch(err){
-        conversation.pop(); // remove typing
-        conversation.push({ role:'assistant', content:'Network error. Please try again.' });
-        console.error(err);
-      } finally{
-        saveChat(conversation);
-        render();
-        chatInput.disabled = false; chatSend.disabled = false;
-        chatInput.focus();
-      }
+    const data = await r.json();
+
+    conversation.pop(); // remove typing
+    if (data.error) {
+      const msg = data.details ? `${data.error}: ${String(data.details).slice(0,200)}` : data.error;
+      conversation.push({ role:'assistant', content: `API error — ${msg}` });
+    } else {
+      conversation.push({ role:'assistant', content: data.answer || 'No reply.' });
+    }
+  } catch(err){
+    conversation.pop();
+    conversation.push({ role:'assistant', content:'Network error. Please try again.' });
+    console.error(err);
+  } finally{
+    saveChat(conversation);
+    render();
+    chatInput.disabled = false; chatSend.disabled = false;
+    chatInput.focus();
+  }
+}
+</script>
+
     }
   </script>
 </body>
