@@ -1,16 +1,61 @@
-<!doctype html><html><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AllerMate Starter</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css"/></head><body>
-<div class="topbar"></div>
-<div class="container">
-  <h1>AllerMate — Vercel + Mapbox + Chatbot (Starter)</h1>
-  <p>Use this starter to get the APIs working on Vercel. Then you can swap in your full UI later.</p>
-  <ol>
-    <li>Go to <strong>Vercel → New Project</strong> and upload this folder.</li>
-    <li>In <strong>Settings → Environment Variables</strong>, add <code>MAPBOX_TOKEN</code> and <code>OPENAI_API_KEY</code>.</li>
-    <li>Open <a class="btn" href="search.html">Search Your Area</a> and test.</li>
-  </ol>
-</div>
-</body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AllerMate — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#17a2ad;color:#fff}
+    .nav a{color:#fff;text-decoration:none;margin-left:14px;font-weight:700}
+    .wrap{max-width:1100px;margin:18px auto;padding:10px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .tile{background:#fff;border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+    .tile a.button{display:inline-block;margin-top:8px}
+    .brand{font-size:28px;font-weight:800}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">AllerMate</div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="signin.html">Sign In</a>
+      <a href="account.html">Account</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <h1>Welcome back 👋</h1>
+    <p>Find safe places to eat, manage your allergy profile, and chat with AllerMate Coach for guidance.</p>
+
+    <section class="grid">
+      <div class="tile">
+        <h2>Search Your Area</h2>
+        <p>Look up nearby options and check suitability.</p>
+        <a class="button" href="search.html">Open Map</a>
+      </div>
+
+      <div class="tile">
+        <h2>Allergy Survey</h2>
+        <p>Set your allergies/intolerances so recommendations are personalized.</p>
+        <a class="button" href="survey.html">Take Survey</a>
+      </div>
+
+      <div class="tile">
+        <h2>Allergy History</h2>
+        <p>Log your recent reactions to spot patterns over time.</p>
+        <a class="button" href="history.html">Log History</a>
+      </div>
+
+      <div class="tile">
+        <h2>Account</h2>
+        <p>Update your profile and manage saved information.</p>
+        <a class="button" href="account.html">Account Settings</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
