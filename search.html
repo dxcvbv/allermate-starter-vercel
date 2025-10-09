@@ -11,11 +11,43 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- Small page-local CSS to ensure a long search bar + responsive layout -->
+  <!-- Page-local CSS: long search bar + chat widget -->
   <style>
     .tools { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; margin: 8px 0; }
     .tools #q { width: 100%; min-width: 260px; }
     @media (max-width: 700px){ .tools { grid-template-columns: 1fr; } }
+
+    /* Chat widget */
+    .chat-fab{
+      position:fixed; right:18px; bottom:18px; z-index:1000;
+      background:#0f8089; color:#fff; border:none; border-radius:999px;
+      padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.15);
+    }
+    .chat-panel{
+      position:fixed; right:18px; bottom:86px; width:360px; max-height:70vh; z-index:1001;
+      display:none; background:#fff; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,.18);
+      overflow:hidden; border:1px solid #d9e7eb;
+    }
+    .chat-header{
+      background:#17a2ad; color:#fff; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;
+      font-weight:700;
+    }
+    .chat-close{ background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer; }
+    .chat-body{ padding:12px; max-height:52vh; overflow:auto; background:#f6fbfc; }
+    .msg{ margin:8px 0; display:flex; }
+    .msg .bubble{ padding:10px 12px; border-radius:12px; max-width:80%; white-space:pre-wrap; word-break:break-word; }
+    .me{ justify-content:flex-end; }
+    .me .bubble{ background:#0f8089; color:#fff; border-bottom-right-radius:4px; }
+    .bot .bubble{ background:#e8f4f6; color:#203036; border-bottom-left-radius:4px; }
+    .chat-input{ display:flex; gap:8px; padding:10px; border-top:1px solid #e2eef0; background:#fff; }
+    .chat-input textarea{
+      flex:1; resize:none; min-height:44px; max-height:120px; padding:10px 12px; border:2px solid #2e6f76; border-radius:10px;
+      background:#1a6b72; color:#eaf9fb; font-family:inherit; font-size:14px;
+    }
+    .chat-input .send{ padding:10px 14px; border:none; border-radius:10px; background:#17a2ad; color:#fff; font-weight:700; }
+    .chat-sub{ font-size:12px; color:#3a5560; margin-top:2px; }
+    .chat-tools{ font-size:12px; color:#dff8fb; opacity:0.9; }
+    .chat-tools a{ color:#fff; text-decoration:underline; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -32,8 +64,25 @@
     <div id="map" style="height:520px;border-radius:16px;border:1px solid #d7e8ec"></div>
   </main>
 
+  <!-- Floating chat -->
+  <button id="chatFab" class="chat-fab">Ask AllerMate</button>
+  <section id="chatPanel" class="chat-panel" aria-live="polite">
+    <div class="chat-header">
+      <div>
+        AllerMate Coach
+        <div class="chat-tools">safe guidance • <a id="clearChat">reset</a></div>
+      </div>
+      <button class="chat-close" id="chatClose" aria-label="Close chat">×</button>
+    </div>
+    <div id="chatBody" class="chat-body"></div>
+    <div class="chat-input">
+      <textarea id="chatInput" placeholder="Ask about menus, ingredients, or safety… (Shift+Enter for new line)"></textarea>
+      <button id="chatSend" class="send" type="button">Send</button>
+    </div>
+  </section>
+
   <script>
-    // Map setup
+    // --------- Map & search ----------
     let map = L.map('map').setView([25.2048,55.2708], 13); // Dubai fallback
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
     let layer = L.layerGroup().addTo(map);
@@ -45,13 +94,12 @@
       features.forEach(f=>{
         const [lon,lat] = f.center || [];
         if (lat==null || lon==null) return;
-        const m = L.marker([lat,lon]).addTo(layer)
+        L.marker([lat,lon]).addTo(layer)
           .bindPopup(`<b>${escapeHtml(f.text||'Place')}</b><br>${escapeHtml(f.place_name||'')}`);
         bounds.push([lat,lon]);
       });
       if (bounds.length) {
         const b = L.latLngBounds(bounds);
-        // only fit if we moved far; keeps user zoom if already close
         if (!map.getBounds().contains(b)) map.fitBounds(b.pad(0.2));
       }
     }
@@ -59,11 +107,8 @@
     async function search(){
       const c = map.getCenter();
       const q = document.getElementById('q').value.trim() || 'restaurant';
-
-      // include visible map bounds to focus results
       const b = map.getBounds();
       const bbox = `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
-
       try{
         const r = await fetch(`/api/places?lat=${c.lat}&lng=${c.lng}&q=${encodeURIComponent(q)}&bbox=${encodeURIComponent(bbox)}`);
         const data = await r.json();
@@ -79,13 +124,10 @@
     }
 
     document.getElementById('search').onclick = search;
-
-    // Enter-to-search
     document.getElementById('q').addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); search(); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); search(); }
     });
 
-    // Use my location — tighter zoom + a pin
     document.getElementById('loc').onclick = ()=>{
       if(!navigator.geolocation){ alert('Geolocation not supported'); return; }
       navigator.geolocation.getCurrentPosition(
@@ -103,11 +145,110 @@
       );
     };
 
-    // initial search near default center
+    // initial search
     search();
 
-    // tiny helper to avoid HTML issues in popups
-    function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    // --------- Chat widget ----------
+    const chatFab = document.getElementById('chatFab');
+    const chatPanel = document.getElementById('chatPanel');
+    const chatBody = document.getElementById('chatBody');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const chatClose = document.getElementById('chatClose');
+    const clearChat = document.getElementById('clearChat');
+
+    const CHAT_KEY = 'allermate:chat';
+    function loadChat(){ try{ return JSON.parse(localStorage.getItem(CHAT_KEY) || '[]'); }catch{ return []; } }
+    function saveChat(msgs){ localStorage.setItem(CHAT_KEY, JSON.stringify(msgs)); }
+    function render(){
+      chatBody.innerHTML = '';
+      conversation.forEach(m=>{
+        const div = document.createElement('div');
+        div.className = 'msg ' + (m.role === 'user' ? 'me' : 'bot');
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        b.textContent = m.content;
+        div.appendChild(b);
+        chatBody.appendChild(div);
+      });
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    let conversation = loadChat();
+    if (conversation.length === 0) {
+      conversation = [{ role:'assistant', content:'Hi! I’m AllerMate Coach. Ask me about dishes, ingredients to avoid, or how to talk to a restaurant about your allergies. I use your saved survey/history if available.' }];
+      saveChat(conversation);
+    }
+    render();
+
+    function toggleChat(show){
+      chatPanel.style.display = show ? 'block' : 'none';
+      if (show) setTimeout(()=>chatInput.focus(), 50);
+    }
+
+    chatFab.onclick = () => toggleChat(true);
+    chatClose.onclick = () => toggleChat(false);
+    clearChat.onclick = () => {
+      conversation = [{ role:'assistant', content:'Chat cleared. How can I help now?' }];
+      saveChat(conversation);
+      render();
+    };
+
+    chatInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault(); doSend();
+      }
+    });
+    chatSend.onclick = doSend;
+
+    async function doSend(){
+      const text = chatInput.value.trim();
+      if (!text) return;
+      // push user msg
+      conversation.push({ role:'user', content:text });
+      saveChat(conversation);
+      render();
+      chatInput.value = '';
+      chatInput.disabled = true; chatSend.disabled = true;
+
+      // typing indicator
+      conversation.push({ role:'assistant', content:'…' });
+      render();
+
+      try{
+        // profile from localStorage (if present)
+        const profile = {
+          survey: JSON.parse(localStorage.getItem('allermate:survey') || '{}'),
+          history: JSON.parse(localStorage.getItem('allermate:history') || '{}')
+        };
+
+        const r = await fetch('/api/chat', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            messages: conversation.filter(m=>m.content !== '…'), // skip indicator
+            profile
+          })
+        });
+        const data = await r.json();
+
+        // replace typing indicator with real message
+        conversation.pop();
+        conversation.push({ role:'assistant', content: data.answer || 'Sorry, I could not get a response right now.' });
+
+      } catch(err){
+        conversation.pop(); // remove typing
+        conversation.push({ role:'assistant', content:'Network error. Please try again.' });
+        console.error(err);
+      } finally{
+        saveChat(conversation);
+        render();
+        chatInput.disabled = false; chatSend.disabled = false;
+        chatInput.focus();
+      }
+    }
   </script>
 </body>
 </html>
