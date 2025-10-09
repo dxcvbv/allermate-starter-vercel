@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Account — AllerMate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .wrap{max-width:900px;margin:28px auto;padding:16px;display:grid;gap:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:800px){.grid{grid-template-columns:1fr}}
+    .stack{display:grid;gap:8px}
+    .pill{padding:6px 10px;border-radius:999px;background:#e8f4f6;color:#0f3e44;display:inline-block;margin:4px 6px 0 0}
+  </style>
+</head>
+<body>
+<header class="nav">
+  <div class="brand">AllerMate</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="welcome.html">Welcome</a>
+    <a href="search.html">Search</a>
+    <a href="signin.html">Sign In</a>
+    <a href="account.html" class="active">Account</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>Profile</h2>
+    <div class="grid">
+      <div class="stack">
+        <label>First name</label>
+        <input class="input" id="first"/>
+      </div>
+      <div class="stack">
+        <label>Last name</label>
+        <input class="input" id="last"/>
+      </div>
+      <div class="stack">
+        <label>Email / phone</label>
+        <input class="input" id="email" placeholder="you@example.com / +971…"/>
+      </div>
+      <div class="stack">
+        <label>Password (demo)</label>
+        <input class="input" id="pw" type="password" placeholder="•••••••"/>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="button" id="saveProfile">Save Profile</button>
+      <a class="button ghost" href="signin.html">Sign out</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Personal Allergy Information</h2>
+    <p class="muted">This mirrors your Survey. Edit here or on the Survey page.</p>
+    <div class="grid">
+      <div class="stack">
+        <label>Allergies (comma-separated)</label>
+        <input class="input" id="allergies" placeholder="peanut, sesame, egg"/>
+      </div>
+      <div class="stack">
+        <label>Intolerances</label>
+        <input class="input" id="intolerances" placeholder="lactose, gluten"/>
+      </div>
+      <div class="stack">
+        <label>Diet</label>
+        <select class="input" id="diet">
+          <option value="">None</option>
+          <option>Vegan</option><option>Vegetarian</option>
+          <option>Halal</option><option>Kosher</option>
+        </select>
+      </div>
+      <div class="stack">
+        <label>Epinephrine auto-injector</label>
+        <select class="input" id="epi"><option>No</option><option>Yes</option></select>
+      </div>
+      <div class="stack" style="grid-column:1/-1">
+        <label>Notes</label>
+        <textarea class="input" id="notes" rows="3" placeholder="Cross-contact concerns, preferred substitutions…"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="button" id="saveSurvey">Save Allergy Info</button>
+      <a class="button ghost" href="survey.html">Open Survey</a>
+    </div>
+
+    <div id="chips" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card">
+    <h2>Recent Reaction (from History)</h2>
+    <div id="lastHistory" class="muted">No history yet. <a href="history.html">Log one</a>.</div>
+  </section>
+</main>
+
+<script>
+const $ = s=>document.querySelector(s);
+
+// load profile
+const acct = JSON.parse(localStorage.getItem('allermate:account')||'{}');
+$('#first').value = acct.first||''; $('#last').value = acct.last||'';
+$('#email').value = acct.email||''; $('#pw').value = acct.pw||'';
+$('#saveProfile').onclick = ()=>{
+  const v = {first:$('#first').value.trim(), last:$('#last').value.trim(),
+             email:$('#email').value.trim(), pw:$('#pw').value};
+  localStorage.setItem('allermate:account', JSON.stringify(v));
+  alert('Profile saved.');
+};
+
+// load survey
+const survey = JSON.parse(localStorage.getItem('allermate:survey')||'{}');
+$('#allergies').value = survey.allergies||'';
+$('#intolerances').value = survey.intolerances||'';
+$('#diet').value = survey.diet||'';
+$('#epi').value = survey.epi||'No';
+$('#notes').value = survey.notes||'';
+renderChips();
+
+$('#saveSurvey').onclick = ()=>{
+  const s = {
+    allergies: $('#allergies').value.trim(),
+    intolerances: $('#intolerances').value.trim(),
+    diet: $('#diet').value,
+    epi: $('#epi').value,
+    notes: $('#notes').value.trim()
+  };
+  localStorage.setItem('allermate:survey', JSON.stringify(s));
+  renderChips();
+  alert('Allergy info saved.');
+};
+
+function renderChips(){
+  const s = JSON.parse(localStorage.getItem('allermate:survey')||'{}');
+  const parts = (s.allergies||'').split(/[,;]/).map(t=>t.trim()).filter(Boolean);
+  $('#chips').innerHTML = parts.map(p=>`<span class="pill">${p}</span>`).join('');
+}
+
+// history preview
+const hist = JSON.parse(localStorage.getItem('allermate:history')||'[]');
+if(hist.length){
+  const last = hist[hist.length-1];
+  $('#lastHistory').innerHTML = `${last.date||''} — ${last.trigger||last.food||'Reaction'} (${last.severity||'unknown'})`;
+}
+</script>
+</body>
+</html>
