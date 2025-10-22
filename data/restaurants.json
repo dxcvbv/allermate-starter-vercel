@@ -1,1 +1,39 @@
+[
+  {
+    "id": "r_abu_001",
+    "name": "Palm Court Grill",
+    "city": "Abu Dhabi",
+    "coords": [24.4539, 54.3773],
+    "cuisines": ["Middle Eastern", "Grill"],
+    "menu": [
+      {"sku":"M01","name":"Chicken Shawarma Wrap","ingredients":["chicken","garlic sauce","tahini","pita"],"tags":["contains_sesame"],"price_aed":24},
+      {"sku":"M02","name":"Falafel Plate","ingredients":["chickpeas","tahini","salad","pita"],"tags":["vegetarian","contains_sesame","may_contain_gluten"],"price_aed":22},
+      {"sku":"M03","name":"Grilled Salmon","ingredients":["salmon","lemon","olive oil"],"tags":["fish"],"price_aed":58}
+    ]
+  },
+  {
+    "id": "r_dxb_002",
+    "name": "Marina Burger Lab",
+    "city": "Dubai",
+    "coords": [25.2048, 55.2708],
+    "cuisines": ["Burgers", "American"],
+    "menu": [
+      {"sku":"B01","name":"Classic Beef Burger","ingredients":["beef patty","bun","cheddar","house sauce"],"tags":["gluten","milk_protein","egg_possible"],"price_aed":35},
+      {"sku":"B02","name":"Vegan Black Bean Burger","ingredients":["black beans","oats","lettuce","tomato","vegan bun"],"tags":["vegan","may_contain_gluten"],"price_aed":33},
+      {"sku":"S01","name":"Sesame Fries","ingredients":["potato","oil","sesame spice"],"tags":["contains_sesame","shared_fryer_possible"],"price_aed":18}
+    ]
+  },
+  {
+    "id": "r_shj_003",
+    "name": "Spice Route Curry House",
+    "city": "Sharjah",
+    "coords": [25.3463, 55.4209],
+    "cuisines": ["Indian"],
+    "menu": [
+      {"sku":"C01","name":"Paneer Tikka Masala","ingredients":["paneer","tomato","cream","spices"],"tags":["milk_protein"],"price_aed":42},
+      {"sku":"C02","name":"Chana Masala","ingredients":["chickpeas","spices","onion"],"tags":["vegan"],"price_aed":28},
+      {"sku":"C03","name":"Butter Chicken","ingredients":["chicken","butter","cream"],"tags":["milk_protein"],"price_aed":45}
+    ]
+  }
+]
 
