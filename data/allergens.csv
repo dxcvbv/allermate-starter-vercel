@@ -1,1 +1,16 @@
-
+id,label_en,label_ar,severity_hint
+peanut,Peanuts,الفول السوداني,high
+tree_nut,Tree nuts (almond, walnut, etc.),المكسرات,high
+sesame,Sesame,السمسم,high
+gluten,Gluten (wheat, barley, rye),الغلوتين,varies
+lactose,Lactose / Dairy,اللاكتوز / الألبان,varies
+milk_protein,Milk protein (casein),بروتين الحليب (كازين),high
+egg,Egg,البيض,high
+soy,Soy,الصويا,varies
+fish,Fish,الأسماك,high
+shellfish,Shellfish (shrimp, crab),المأكولات البحرية القشرية,high
+mustard,Mustard,الخردل,varies
+celery,Celery,الكرفس,varies
+sulfites,Sulfites,البيسلفيت,varies
+lupin,Lupin,الترمس,varies
+sesame_oil,Sesame oil,زيت السمسم,high
