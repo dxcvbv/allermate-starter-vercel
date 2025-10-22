@@ -1,1 +1,9 @@
-
+{
+  "hard_block": ["peanut","tree_nut","sesame","shellfish","fish","egg","milk_protein","gluten","soy"],
+  "shared_risk_tags": {
+    "shared_fryer_possible": "yellow",
+    "may_contain_gluten": "yellow",
+    "egg_possible": "yellow"
+  },
+  "vegan_overrides": ["milk_protein","egg","fish","shellfish"]
+}
