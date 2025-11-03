@@ -6,70 +6,85 @@
   <title>Sign In — AllerMate</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
-  <style>
-    .wrap{max-width:520px;margin:28px auto;padding:16px}
-    form .row{display:grid;gap:8px;margin:10px 0}
-  </style>
 </head>
 <body>
-<header class="nav">
+
+<header class="topbar">
   <div class="brand">AllerMate</div>
-  <nav>
+  <nav class="topnav" aria-label="Primary">
     <a href="index.html">Home</a>
     <a href="welcome.html">Welcome</a>
     <a href="search.html">Search</a>
-    <a href="signin.html" class="active">Sign In</a>
     <a href="account.html">Account</a>
+    <a href="history.html">History</a>
+    <a href="signin.html">Sign In</a>
   </nav>
 </header>
+<div class="container">
+  <aside class="sidebar" aria-label="Sidebar">
+    <a href="index.html" class="item">Home</a>
+    <a href="welcome.html" class="item">Welcome</a>
+    <a href="search.html" class="item">Search</a>
+    <a href="account.html" class="item">Account</a>
+    <a href="history.html" class="item">History</a>
+    <a href="signin.html" class="item">Sign In</a>
+  </aside>
+  <main class="main">
 
-<main class="wrap card">
+
+<section class="card" style="max-width:560px;margin-inline:auto">
   <h1>Sign In</h1>
   <form id="auth" autocomplete="on">
-    <div class="row">
+    <div class="grid">
       <label for="email">Email</label>
       <input class="input" id="email" type="email" required placeholder="you@example.com" autocomplete="email"/>
-    </div>
-    <div class="row">
       <label for="password">Password</label>
       <input class="input" id="password" type="password" required autocomplete="current-password"/>
     </div>
-    <button class="button" type="submit">Continue</button>
+    <div class="navrow" style="margin-top:12px">
+      <button class="button" type="submit">Continue</button>
+    </div>
+    <p class="muted" style="margin-top:8px">Don’t have an account? Enter email & password and we’ll create one.</p>
   </form>
-  <p class="muted" style="margin-top:8px">
-    Don’t have an account? Enter your email & password and we’ll create one for you.
-  </p>
-</main>
+</section>
 
-<!-- Supabase project keys (anon key is safe to expose) -->
+
+  </main>
+</div>
+<nav class="tabbar" aria-label="Bottom navigation">
+  <a href="index.html">Home</a>
+  <a href="search.html">Search</a>
+  <a href="account.html">Account</a>
+  <a href="history.html">History</a>
+</nav>
+
+<div class="toast" role="status" aria-live="polite"></div>
+
+<!-- Supabase project keys -->
 <script>
-  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co/';
+  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co';
   window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
 </script>
-
-<!-- Supabase helpers (supa.js you downloaded) -->
 <script type="module" src="/js/supa.js"></script>
+<script type="module" src="/js/ui.js"></script>
 
-<!-- Page logic -->
+
 <script type="module">
   import { signInOrSignUp } from '/js/supa.js';
-
-  const $ = (sel) => document.querySelector(sel);
+  import { toast } from '/js/ui.js';
+  const $ = s => document.querySelector(s);
   const form = $('#auth');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = $('#email').value.trim();
     const password = $('#password').value;
-
     try {
       const { error } = await signInOrSignUp(email, password);
-      if (error) return alert(error.message || 'Authentication error');
+      if (error) { toast(error.message || 'Authentication error'); return; }
       location.href = 'account.html';
-    } catch (err) {
-      alert('Network error. Please try again.');
-      console.error(err);
-    }
+    } catch { toast('Network error'); }
   });
 </script>
+
 </body>
 </html>
