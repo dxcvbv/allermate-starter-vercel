@@ -25,28 +25,51 @@
 
 <main class="wrap card">
   <h1>Sign In</h1>
-  <form id="form">
+  <form id="auth" autocomplete="on">
     <div class="row">
-      <label>Email / phone</label>
-      <input class="input" id="id" required placeholder="you@example.com or +971…"/>
+      <label for="email">Email</label>
+      <input class="input" id="email" type="email" required placeholder="you@example.com" autocomplete="email"/>
     </div>
     <div class="row">
-      <label>Password</label>
-      <input class="input" id="pw" type="password" required/>
+      <label for="password">Password</label>
+      <input class="input" id="password" type="password" required autocomplete="current-password"/>
     </div>
     <button class="button" type="submit">Continue</button>
   </form>
-  <p class="muted" style="margin-top:8px">Demo only — no real auth; we store the name/contact you enter on the Account page.</p>
+  <p class="muted" style="margin-top:8px">
+    Don’t have an account? Enter your email & password and we’ll create one for you.
+  </p>
 </main>
 
+<!-- Supabase project keys (anon key is safe to expose) -->
 <script>
-document.getElementById('form').addEventListener('submit', e=>{
-  e.preventDefault();
-  const acct = JSON.parse(localStorage.getItem('allermate:account')||'{}');
-  if(!acct.email) acct.email = document.getElementById('id').value.trim();
-  localStorage.setItem('allermate:account', JSON.stringify(acct));
-  location.href = 'account.html';
-});
+  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co/';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+</script>
+
+<!-- Supabase helpers (supa.js you downloaded) -->
+<script type="module" src="/js/supa.js"></script>
+
+<!-- Page logic -->
+<script type="module">
+  import { signInOrSignUp } from '/js/supa.js';
+
+  const $ = (sel) => document.querySelector(sel);
+  const form = $('#auth');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('#email').value.trim();
+    const password = $('#password').value;
+
+    try {
+      const { error } = await signInOrSignUp(email, password);
+      if (error) return alert(error.message || 'Authentication error');
+      location.href = 'account.html';
+    } catch (err) {
+      alert('Network error. Please try again.');
+      console.error(err);
+    }
+  });
 </script>
 </body>
 </html>
