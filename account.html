@@ -144,6 +144,15 @@
   <a id="signOut" class="button secondary" href="#">Sign out</a>
   <a class="button secondary" href="index.html">← Home</a>
 </div>
+<script>
+  (function(){
+    const current = location.pathname.split('/').pop() || 'index.html';
+    for (const el of document.querySelectorAll('.topnav a, .tabbar a')) {
+      const href = el.getAttribute('href');
+      if (href && href.endsWith(current)) el.classList.add('active'), el.setAttribute('aria-current','page');
+    }
+  })();
+</script>
 
 </body>
   <script>
