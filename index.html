@@ -1,82 +1,70 @@
-<!doctype html>
-<html>
-<head>
-  
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AllerMate — Home</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
-  <style>
-    .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#17a2ad;color:#fff}
-    .nav a{color:#fff;text-decoration:none;margin-left:14px;font-weight:700}
-    .wrap{max-width:1100px;margin:18px auto;padding:10px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-    .tile{background:#fff;border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
-    .tile a.button{display:inline-block;margin-top:8px}
-    .brand{font-size:28px;font-weight:800}
-  </style>
-</head>
-<body>
- <header class="topbar">
-  <div class="brand"><a href="index.html">AllerMate</a></div>
-  <nav class="topnav" aria-label="Primary">
-    <a href="index.html">Home</a>
-    <a href="search.html">Search</a>
-    <a href="account.html">Account</a>
-    <a href="history.html">History</a>
-    <a href="signin.html">Sign In</a>
-  </nav>
+<!doctype html><html><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Home — AllerMate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css"/></head><body><header class="header">
+  <div class="container bar">
+    <a href="index.html" class="brand"><img src="assets/logo.svg" alt="AllerMate logo" height="28"></a>
+    <nav aria-label="Primary" class="desktop-only">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="account.html">Account</a>
+      <a href="history.html">History</a>
+      <a href="signin.html">Sign In</a>
+    </nav>
+    <button class="mobile-only button ghost" id="menuBtn" aria-label="Open menu">Menu</button>
+  </div>
 </header>
-
-<!-- Mobile bottom tabs -->
+<section class="hero container">
+  <div class="grid two">
+    <div>
+      <h1 class="title">Eat with confidence. <br/>Allergies handled.</h1>
+      <p class="subtitle">AllerMate helps you find safer meals, track reactions, and keep your preferences synced across devices.</p>
+      <div class="row" style="margin-top:14px">
+        <a class="cta" href="search.html">Start a search</a>
+        <a class="cta secondary" href="signin.html">Sign in</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Quick links</h3>
+      <div class="row" style="margin-top:8px">
+        <a class="button" href="account.html">Edit profile</a>
+        <a class="button ghost" href="history.html">View history</a>
+      </div>
+      <p class="muted" style="margin-top:12px">Your profile and history are stored securely via Supabase.</p>
+    </div>
+  </div>
+</section>
+<section class="container" style="padding:18px 0 36px">
+  <div class="grid three">
+    <div class="card"><h4>Personalized</h4><p class="muted">Save allergies, intolerances, diet, substitutions, and notes.</p></div>
+    <div class="card"><h4>Cross‑device</h4><p class="muted">Your account follows you—desktop, mobile, anywhere.</p></div>
+    <div class="card"><h4>Privacy‑first</h4><p class="muted">Row Level Security ensures only you can access your data.</p></div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="container row" style="justify-content:space-between">
+    <div>© <span id="y"></span> AllerMate</div>
+    <div class="links">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="account.html">Account</a>
+      <a href="history.html">History</a>
+      <a href="signin.html">Sign In</a>
+    </div>
+  </div>
+  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+</footer>
 <nav class="tabbar" aria-label="Bottom navigation">
   <a href="index.html">Home</a>
   <a href="search.html">Search</a>
   <a href="account.html">Account</a>
   <a href="history.html">History</a>
 </nav>
-
-
-  <main class="wrap">
-    <h1>Welcome back 👋</h1>
-    <p>Find safe places to eat, manage your allergy profile, and chat with AllerMate Coach for guidance.</p>
-
-    <section class="grid">
-      <div class="tile">
-        <h2>Search Your Area</h2>
-        <p>Look up nearby options and check suitability.</p>
-        <a class="button" href="search.html">Open Map</a>
-      </div>
-
-      <div class="tile">
-        <h2>Allergy Survey</h2>
-        <p>Set your allergies/intolerances so recommendations are personalized.</p>
-        <a class="button" href="survey.html">Take Survey</a>
-      </div>
-
-      <div class="tile">
-        <h2>Allergy History</h2>
-        <p>Log your recent reactions to spot patterns over time.</p>
-        <a class="button" href="history.html">Log History</a>
-      </div>
-
-      <div class="tile">
-        <h2>Account</h2>
-        <p>Update your profile and manage saved information.</p>
-        <a class="button" href="account.html">Account Settings</a>
-      </div>
-    </section>
-  </main>
-  <script>
-  (function(){
-    const current = location.pathname.split('/').pop() || 'index.html';
-    for (const el of document.querySelectorAll('.topnav a, .tabbar a')) {
-      const href = el.getAttribute('href');
-      if (href && href.endsWith(current)) el.classList.add('active'), el.setAttribute('aria-current','page');
-    }
-  })();
+<script>
+window.SUPABASE_URL='https://iabawpqxcoxfstyaufui.supabase.co';
+window.SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
 </script>
-
-</body>
-</html>
+<script type="module" src="js/supa.js"></script>
+<script type="module" src="js/app.js"></script>
+</body></html>

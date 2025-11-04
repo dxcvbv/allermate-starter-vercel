@@ -1,107 +1,69 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Account — AllerMate</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
-</head>
-<header class="topbar">
-  <div class="brand"><a href="index.html">AllerMate</a></div>
-  <nav class="topnav" aria-label="Primary">
-    <a href="index.html">Home</a>
-    <a href="search.html">Search</a>
-    <a href="account.html">Account</a>
-    <a href="history.html">History</a>
-    <a href="signin.html">Sign In</a>
-  </nav>
-</header>
-
-<!-- Mobile bottom tabs -->
-<nav class="tabbar" aria-label="Bottom navigation">
-  <a href="index.html">Home</a>
-  <a href="search.html">Search</a>
-  <a href="account.html">Account</a>
-  <a href="history.html">History</a>
-</nav>
-
-</header>
-<div class="container">
-  <aside class="sidebar" aria-label="Sidebar">
-    <a href="index.html" class="item">Home</a>
-    <a href="welcome.html" class="item">Welcome</a>
-    <a href="search.html" class="item">Search</a>
-    <a href="account.html" class="item">Account</a>
-    <a href="history.html" class="item">History</a>
-    <a href="signin.html" class="item">Sign In</a>
-  </aside>
-  <main class="main">
-
-
-<section class="card" style="max-width:860px;margin-inline:auto">
-  <h1>Your Profile</h1>
-  <div class="grid two">
-    <div>
-      <label for="allergies">Allergies</label>
-      <input id="allergies" class="input" placeholder="peanut, sesame, egg"/>
-    </div>
-    <div>
-      <label for="intolerances">Intolerances</label>
-      <input id="intolerances" class="input" placeholder="lactose, gluten"/>
-    </div>
-    <div>
-      <label for="diet">Diet</label>
-      <select id="diet" class="input">
-        <option>None</option><option>Vegetarian</option><option>Vegan</option><option>Pescatarian</option>
-      </select>
-    </div>
-    <div>
-      <label for="epi">Epinephrine auto-injector</label>
-      <select id="epi" class="input"><option>No</option><option>Yes</option></select>
-    </div>
-    <div class="grid" style="grid-column:1/-1">
-      <label for="subs">Preferred substitutions</label>
-      <input id="subs" class="input" placeholder="e.g., oat milk instead of dairy"/>
-    </div>
-    <div class="grid" style="grid-column:1/-1">
-      <label for="notes">Notes</label>
-      <textarea id="notes" class="input" rows="4" placeholder="Anything else you'd like us to consider"></textarea>
-    </div>
+<!doctype html><html><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Account — AllerMate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css"/></head><body><header class="header">
+  <div class="container bar">
+    <a href="index.html" class="brand"><img src="assets/logo.svg" alt="AllerMate logo" height="28"></a>
+    <nav aria-label="Primary" class="desktop-only">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="account.html">Account</a>
+      <a href="history.html">History</a>
+      <a href="signin.html">Sign In</a>
+    </nav>
+    <button class="mobile-only button ghost" id="menuBtn" aria-label="Open menu">Menu</button>
   </div>
-  <div class="navrow" style="margin-top:12px">
-    <button id="saveProfile" class="button">Save profile</button>
-    <a id="signOut" class="button secondary" href="#">Sign out</a>
+</header>
+<section class="container" style="padding:36px 0">
+  <div class="card" style="max-width:900px;margin:0 auto">
+    <h1>Your Profile</h1>
+    <div class="grid two">
+      <div><label for="allergies">Allergies</label><input id="allergies" class="input" placeholder="peanut, sesame, egg"/></div>
+      <div><label for="intolerances">Intolerances</label><input id="intolerances" class="input" placeholder="lactose, gluten"/></div>
+      <div><label for="diet">Diet</label><select id="diet" class="input"><option>None</option><option>Vegetarian</option><option>Vegan</option><option>Pescatarian</option></select></div>
+      <div><label for="epi">Epinephrine auto‑injector</label><select id="epi" class="input"><option>No</option><option>Yes</option></select></div>
+      <div style="grid-column:1/-1"><label for="subs">Preferred substitutions</label><input id="subs" class="input" placeholder="e.g., oat milk instead of dairy"/></div>
+      <div style="grid-column:1/-1"><label for="notes">Notes</label><textarea id="notes" class="input" rows="4" placeholder="Anything else you'd like us to consider"></textarea></div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button id="saveProfile" class="button">Save profile</button>
+      <a id="signOut" class="button ghost" href="#">Sign out</a>
+      <a class="button ghost" href="index.html">← Home</a>
+    </div>
   </div>
 </section>
-
-
-  </main>
-</div>
+<footer class="footer">
+  <div class="container row" style="justify-content:space-between">
+    <div>© <span id="y"></span> AllerMate</div>
+    <div class="links">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="account.html">Account</a>
+      <a href="history.html">History</a>
+      <a href="signin.html">Sign In</a>
+    </div>
+  </div>
+  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+</footer>
 <nav class="tabbar" aria-label="Bottom navigation">
   <a href="index.html">Home</a>
   <a href="search.html">Search</a>
   <a href="account.html">Account</a>
   <a href="history.html">History</a>
 </nav>
-
-<div class="toast" role="status" aria-live="polite"></div>
-
-<!-- Supabase project keys -->
 <script>
-  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+window.SUPABASE_URL='https://iabawpqxcoxfstyaufui.supabase.co';
+window.SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
 </script>
-<script type="module" src="/js/supa.js"></script>
-<script type="module" src="/js/ui.js"></script>
-
+<script type="module" src="js/supa.js"></script>
+<script type="module" src="js/app.js"></script>
 
 <script type="module">
-  import { requireUser, loadProfile, saveProfile, signOut } from '/js/supa.js';
-  import { toast } from '/js/ui.js';
+  import { requireUser, loadProfile, saveProfile, signOut } from './js/supa.js';
+  import { toast } from './js/app.js';
   const $ = s => document.querySelector(s);
   const val = s => (document.querySelector(s)?.value ?? '').trim();
-
   document.addEventListener('DOMContentLoaded', async () => {
     await requireUser();
     const p = await loadProfile();
@@ -114,52 +76,14 @@
       $('#notes').value = p.notes || '';
     }
   });
-
   document.getElementById('saveProfile').addEventListener('click', async () => {
     const payload = {
-      allergies: val('#allergies'),
-      intolerances: val('#intolerances'),
-      diet: val('#diet'),
-      epi: (val('#epi') || '').toLowerCase() === 'yes',
-      subs: val('#subs'),
-      notes: val('#notes'),
+      allergies: val('#allergies'), intolerances: val('#intolerances'),
+      diet: val('#diet'), epi: (val('#epi') || '').toLowerCase() === 'yes',
+      subs: val('#subs'), notes: val('#notes')
     };
-    try {
-      await saveProfile(payload);
-      toast('Saved to your account.');
-    } catch (e) {
-      toast('Save failed');
-      console.error(e);
-    }
+    try { await saveProfile(payload); toast('Saved to your account.'); } catch(e){ toast('Save failed'); }
   });
-
-  document.getElementById('signOut').addEventListener('click', async (e)=>{
-    e.preventDefault();
-    await signOut();
-    location.href = 'signin.html';
-  });
+  document.getElementById('signOut').addEventListener('click', async (e)=>{ e.preventDefault(); await signOut(); location.href='signin.html'; });
 </script>
-<div class="navrow" style="margin-top:14px">
-  <button id="saveProfile" class="button">Save profile</button>
-  <a id="signOut" class="button secondary" href="#">Sign out</a>
-  <a class="button secondary" href="index.html">← Home</a>
-</div>
-<script>
-  (function(){
-    const current = location.pathname.split('/').pop() || 'index.html';
-    for (const el of document.querySelectorAll('.topnav a, .tabbar a')) {
-      const href = el.getAttribute('href');
-      if (href && href.endsWith(current)) el.classList.add('active'), el.setAttribute('aria-current','page');
-    }
-  })();
-</script>
-
-</body>
-  <script>
-  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
-</script>
-<script type="module" src="/js/supa.js"></script>
-<script type="module" src="/js/ui.js"></script>
-
-</html>
+</body></html>
