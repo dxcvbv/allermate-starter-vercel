@@ -3,88 +3,160 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Allergy History — AllerMate</title>
+  <title>History — AllerMate</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
-  <style>
-    .wrap{max-width:900px;margin:28px auto;padding:16px;display:grid;gap:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media(max-width:800px){.grid{grid-template-columns:1fr}}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #e3eff2;text-align:left}
-  </style>
 </head>
 <body>
-<header class="nav">
-  <div class="brand">AllerMate</div>
-  <nav>
+
+<header class="topbar">
+  <div class="brand"><a href="index.html">AllerMate</a></div>
+  <nav class="topnav" aria-label="Primary">
     <a href="index.html">Home</a>
-    <a href="welcome.html">Welcome</a>
     <a href="search.html">Search</a>
-    <a href="signin.html">Sign In</a>
     <a href="account.html">Account</a>
+    <a href="history.html">History</a>
+    <a href="signin.html">Sign In</a>
   </nav>
 </header>
 
-<main class="wrap">
-  <section class="card">
-    <h1>Log an Allergic Reaction</h1>
-    <div class="grid">
-      <div>
-        <label>Date</label>
-        <input class="input" id="date" type="date"/>
-      </div>
-      <div>
-        <label>Severity</label>
-        <select class="input" id="severity"><option>Mild</option><option>Moderate</option><option>Severe</option></select>
-      </div>
-      <div>
-        <label>Food / dish</label>
-        <input class="input" id="food" placeholder="e.g., falafel wrap"/>
-      </div>
-      <div>
-        <label>Suspected trigger</label>
-        <input class="input" id="trigger" placeholder="e.g., sesame / tahini"/>
-      </div>
-      <div style="grid-column:1/-1">
-        <label>Symptoms & treatment</label>
-        <textarea class="input" id="notes" rows="3" placeholder="Hives, wheeze; took antihistamine; used epinephrine…"></textarea>
-      </div>
-    </div>
-    <div style="margin-top:10px">
-      <button class="button" id="add">Save Entry</button>
-      <a class="button ghost" href="account.html">Back to Account</a>
-    </div>
-  </section>
+<!-- Mobile bottom tabs -->
+<nav class="tabbar" aria-label="Bottom navigation">
+  <a href="index.html">Home</a>
+  <a href="search.html">Search</a>
+  <a href="account.html">Account</a>
+  <a href="history.html">History</a>
+</nav>
 
-  <section class="card">
-    <h2>History</h2>
-    <table id="tbl">
-      <thead><tr><th>Date</th><th>Food</th><th>Trigger</th><th>Severity</th><th>Notes</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </section>
-</main>
+</header>
+<div class="container">
+  <aside class="sidebar" aria-label="Sidebar">
+    <a href="index.html" class="item">Home</a>
+    <a href="welcome.html" class="item">Welcome</a>
+    <a href="search.html" class="item">Search</a>
+    <a href="account.html" class="item">Account</a>
+    <a href="history.html" class="item">History</a>
+    <a href="signin.html" class="item">Sign In</a>
+  </aside>
+  <main class="main">
 
+
+<section class="card" style="max-width:980px;margin-inline:auto">
+  <h1>History</h1>
+  <div class="grid two">
+    <div>
+      <label for="date">Date</label>
+      <input id="date" type="date" class="input"/>
+    </div>
+    <div>
+      <label for="food">Food</label>
+      <input id="food" class="input" placeholder="e.g., Pad Thai"/>
+    </div>
+    <div>
+      <label for="trigger">Trigger</label>
+      <input id="trigger" class="input" placeholder="e.g., peanut oil"/>
+    </div>
+    <div>
+      <label for="severity">Severity</label>
+      <select id="severity" class="input"><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+    </div>
+    <div class="grid" style="grid-column:1/-1">
+      <label for="notes">Notes</label>
+      <input id="notes" class="input" placeholder="What happened, actions taken"/>
+    </div>
+  </div>
+  <div class="navrow" style="margin-top:12px">
+    <button id="addEntry" class="button">Add entry</button>
+  </div>
+  <hr/>
+  <div id="list"></div>
+</section>
+
+
+  </main>
+</div>
+<nav class="tabbar" aria-label="Bottom navigation">
+  <a href="index.html">Home</a>
+  <a href="search.html">Search</a>
+  <a href="account.html">Account</a>
+  <a href="history.html">History</a>
+</nav>
+
+<div class="toast" role="status" aria-live="polite"></div>
+
+<!-- Supabase project keys -->
 <script>
-const key='allermate:history';
-function load(){ return JSON.parse(localStorage.getItem(key)||'[]'); }
-function save(arr){ localStorage.setItem(key, JSON.stringify(arr)); }
-function render(){
-  const tbody=document.querySelector('#tbl tbody'); tbody.innerHTML='';
-  load().forEach(e=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${e.date||''}</td><td>${e.food||''}</td><td>${e.trigger||''}</td><td>${e.severity||''}</td><td>${e.notes||''}</td>`;
-    tbody.appendChild(tr);
-  });
-}
-document.getElementById('add').onclick=()=>{
-  const entry={date:date.value, severity:severity.value, food:food.value.trim(), trigger:trigger.value.trim(), notes:notes.value.trim()};
-  if(!entry.date){alert('Please select a date.');return;}
-  const arr=load(); arr.push(entry); save(arr); render(); alert('Saved.');
-  // also store last entry summary for Account preview
-};
-render();
+  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
 </script>
+<script type="module" src="/js/supa.js"></script>
+<script type="module" src="/js/ui.js"></script>
+
+
+<script type="module">
+  import { requireUser, listHistory, addHistory } from '/js/supa.js';
+  import { toast } from '/js/ui.js';
+  const $ = s => document.querySelector(s);
+
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    await requireUser();
+    const t = new Date().toISOString().slice(0,10);
+    $('#date').value = t;
+    await renderHistory();
+  });
+
+  async function renderHistory(){
+    const items = await listHistory();
+    const el = $('#list');
+    if (!items.length){ el.innerHTML = '<p class="muted">No entries yet.</p>'; return; }
+    el.innerHTML = `<div class="grid">${items.map(r => `
+      <div class="card">
+        <div class="navrow"><strong>${r.date}</strong><span class="muted">• ${r.severity || '—'}</span></div>
+        <div>${r.food || ''}</div>
+        <div class="muted">${r.trigger || ''}</div>
+        ${r.notes ? `<div class="muted">${r.notes}</div>` : ''}
+      </div>`).join('')}</div>`;
+  }
+
+  document.getElementById('addEntry').addEventListener('click', async ()=>{
+    const payload = {
+      date: $('#date').value,
+      food: $('#food').value,
+      trigger: $('#trigger').value,
+      severity: $('#severity').value,
+      notes: $('#notes').value
+    };
+    <div class="navrow" style="margin-top:14px">
+  <button id="addEntry" class="button">Add entry</button>
+  <a class="button secondary" href="index.html">← Home</a>
+</div>
+
+    try {
+      await addHistory(payload);
+      toast('Entry added');
+      await renderHistory();
+    } catch(e){
+      toast('Could not add entry');
+      console.error(e);
+    }
+  });
+</script>
+<script>
+  (function(){
+    const current = location.pathname.split('/').pop() || 'index.html';
+    for (const el of document.querySelectorAll('.topnav a, .tabbar a')) {
+      const href = el.getAttribute('href');
+      if (href && href.endsWith(current)) el.classList.add('active'), el.setAttribute('aria-current','page');
+    }
+  })();
+</script>
+
 </body>
+   <script>
+  window.SUPABASE_URL = 'https://iabawpqxcoxfstyaufui.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+</script>
+<script type="module" src="/js/supa.js"></script>
+<script type="module" src="/js/ui.js"></script>
+
 </html>
