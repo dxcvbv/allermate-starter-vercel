@@ -126,6 +126,11 @@
       severity: $('#severity').value,
       notes: $('#notes').value
     };
+    <div class="navrow" style="margin-top:14px">
+  <button id="addEntry" class="button">Add entry</button>
+  <a class="button secondary" href="index.html">← Home</a>
+</div>
+
     try {
       await addHistory(payload);
       toast('Entry added');
