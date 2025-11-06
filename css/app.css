@@ -113,6 +113,16 @@ label { font-size: .95rem; color: var(--muted); }
   padding: 12px 12px;
   outline: none;
 }
+/* Bigger logo */
+.header .brand img{
+  height: 40px;           /* was 28 */
+  width: auto;
+  display: block;
+}
+@media (max-width: 900px){
+  .header .brand img{ height: 32px; }
+}
+
 .input::placeholder { color: rgba(255,255,255,.60); }
 .input:focus, select:focus, textarea:focus { box-shadow: var(--ring); border-color: transparent; }
 
