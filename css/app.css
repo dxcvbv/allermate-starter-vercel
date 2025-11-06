@@ -64,36 +64,15 @@ img { max-width: 100%; display: block; }
 
 /* ---------- Header & Footer ---------- */
 /* --- Header nav: pill buttons on the teal bar --- */
-.header nav { margin-left:auto; display:flex; gap:12px; align-items:center; }
-.header nav a{
-  color:#fff;
-  display:inline-flex; align-items:center; justify-content:center;
-  height:36px; padding:0 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.28);
-  background: rgba(255,255,255,.10);
-  font-weight:600; letter-spacing:.2px;
-  text-decoration:none;
+/* Header — lock in teal gradient */
+.header{
+  position: sticky; top:0; z-index:40;
+  background: linear-gradient(90deg, var(--brand-700), var(--brand-600)) !important;
+  border-bottom: none;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06);
 }
-.header nav a:hover{ background: rgba(255,255,255,.18); }
-.header nav a.active,
-.header nav a[aria-current="page"]{
-  background:#fff;
-  color: var(--brand-700);
-  border-color: transparent;
-}
+.header .bar{ display:flex; align-items:center; gap:16px; padding:10px 18px }
 
-/* Logo sizing (optional tidy) */
-.header .brand img{ height:28px; display:block; }
-
-/* Hide the "Menu" button on desktop; show only on mobile */
-.mobile-only{ display:none !important; }
-@media (max-width:900px){
-  .mobile-only{ display:inline-flex !important; }
-  .desktop-only{ display:none !important; }
-  /* On mobile we don’t need pill borders in the header */
-  .header nav a{ border:0; background:transparent; padding:8px 10px; height:auto; }
-}
 
 .footer {
   margin-top: 60px; padding: 24px 0;
