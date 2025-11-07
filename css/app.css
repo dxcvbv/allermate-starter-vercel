@@ -65,14 +65,33 @@ img { max-width: 100%; display: block; }
 /* ---------- Header & Footer ---------- */
 /* --- Header nav: pill buttons on the teal bar --- */
 /* Header — lock in teal gradient */
-.header{
-  position: sticky; top:0; z-index:40;
-  background: linear-gradient(90deg, var(--brand-700), var(--brand-600)) !important;
-  border-bottom: none;
-  box-shadow: 0 1px 0 rgba(0,0,0,.06);
+/* Header nav: white text, pill buttons */
+.header nav{ margin-left:auto; display:flex; gap:12px; align-items:center }
+.header nav a{
+  color:#fff;                               /* visible text */
+  display:inline-flex; align-items:center; justify-content:center;
+  height:36px; padding:0 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.10);
+  font-weight:700; letter-spacing:.2px;
+  text-decoration:none;
 }
-.header .bar{ display:flex; align-items:center; gap:16px; padding:10px 18px }
+.header nav a:hover{ background: rgba(255,255,255,.18); }
+.header nav a.active,
+.header nav a[aria-current="page"]{
+  background:#fff;
+  color: var(--brand-700);                  /* teal text on active pill */
+  border-color: transparent;
+}
 
+/* Hide “Menu” on desktop, show only on mobile */
+.mobile-only{ display:none !important; }
+@media (max-width:900px){
+  .mobile-only{ display:inline-flex !important; }
+  .desktop-only{ display:none !important; }
+  .header nav a{ border:0; background:transparent; height:auto; padding:8px 10px }
+}
 
 .footer {
   margin-top: 60px; padding: 24px 0;
