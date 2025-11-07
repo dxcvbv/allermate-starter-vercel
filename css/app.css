@@ -1,3 +1,8 @@
+/* ===========================
+   AllerMate – App Styles
+   =========================== */
+
+/* ---------- Theme tokens ---------- */
 :root {
   /* Brand – TEAL */
   --brand-50:  #E0F2F1;
@@ -62,37 +67,49 @@ img { max-width: 100%; display: block; }
 
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
 
-/* ---------- Header & Footer ---------- */
-/* --- Header nav: pill buttons on the teal bar --- */
-/* Header — lock in teal gradient */
-/* Header nav: white text, pill buttons */
+/* ---------- Header (teal gradient) ---------- */
+.header{
+  position: sticky; top:0; z-index:40;
+  background: linear-gradient(90deg, var(--brand-700), var(--brand-600)) !important;
+  border-bottom: none;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06);
+}
+.header .bar{ display:flex; align-items:center; gap:16px; padding:10px 18px }
+
+/* Bigger logo */
+.header .brand img{
+  height: 40px; width: auto; display: block;
+}
+@media (max-width: 900px){ .header .brand img{ height: 32px; } }
+
+/* Nav as pill buttons (white text, white active pill) */
 .header nav{ margin-left:auto; display:flex; gap:12px; align-items:center }
 .header nav a{
-  color:#fff;                               /* visible text */
+  color:#fff;
   display:inline-flex; align-items:center; justify-content:center;
   height:36px; padding:0 14px;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.28);
   background: rgba(255,255,255,.10);
   font-weight:700; letter-spacing:.2px;
-  text-decoration:none;
 }
 .header nav a:hover{ background: rgba(255,255,255,.18); }
 .header nav a.active,
 .header nav a[aria-current="page"]{
   background:#fff;
-  color: var(--brand-700);                  /* teal text on active pill */
+  color: var(--brand-700);
   border-color: transparent;
 }
 
-/* Hide “Menu” on desktop, show only on mobile */
+/* Hide “Menu” on desktop; show only on mobile */
 .mobile-only{ display:none !important; }
 @media (max-width:900px){
   .mobile-only{ display:inline-flex !important; }
   .desktop-only{ display:none !important; }
-  .header nav a{ border:0; background:transparent; height:auto; padding:8px 10px }
+  .header nav a{ border:0; background:transparent; height:auto; padding:8px 10px; }
 }
 
+/* ---------- Footer ---------- */
 .footer {
   margin-top: 60px; padding: 24px 0;
   border-top: 1px solid rgba(255,255,255,.08);
@@ -132,16 +149,6 @@ label { font-size: .95rem; color: var(--muted); }
   padding: 12px 12px;
   outline: none;
 }
-/* Bigger logo */
-.header .brand img{
-  height: 40px;           /* was 28 */
-  width: auto;
-  display: block;
-}
-@media (max-width: 900px){
-  .header .brand img{ height: 32px; }
-}
-
 .input::placeholder { color: rgba(255,255,255,.60); }
 .input:focus, select:focus, textarea:focus { box-shadow: var(--ring); border-color: transparent; }
 
@@ -163,12 +170,12 @@ label { font-size: .95rem; color: var(--muted); }
 /* ---------- Mobile tab bar ---------- */
 .tabbar {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(10,14,30,.75);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255,255,255,.08);
+  background: linear-gradient(90deg, var(--brand-700), var(--brand-600));
+  border-top: none;
   display: none; justify-content: space-around; padding: 8px 10px;
 }
-.tabbar a { padding: 8px 12px; border-radius: 10px; }
+.tabbar a { padding: 8px 12px; border-radius: 10px; color:#fff; }
+.tabbar a.active{ background: rgba(255,255,255,.16); }
 @media (max-width: 900px) { .tabbar { display: flex; } body { padding-bottom: 60px; } }
 
 /* ---------- Toasts ---------- */
