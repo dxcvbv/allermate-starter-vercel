@@ -1,235 +1,190 @@
 /* js/search-mapbox.js
+   - Shows map on first load
    - Loads /data/restaurants.json
-   - Filters to restaurants only
-   - Keyword matching (e.g., "burger" shows McDonald's, Burger King, Five Guys…)
-   - Scores & sorts results
-   - Plots Mapbox markers + renders a list
+   - Keyword search (burger, pizza, vegan, etc.)
+   - Matches known chains (McDonalds, Burger King, etc.)
+   - Apply / Clear buttons
 */
 
 const $ = (s) => document.querySelector(s);
 
-mapboxgl.accessToken = window.MAPBOX_TOKEN;
-
-// ----- Known brand hints by keyword -----
-const BRAND_HINTS = {
-  burger: [
-    'mcdonald', "mc donald", "mcdonald's", 'burger king', 'five guys', 'wendy', 'hardee', 'carls jr', 'shake shack',
-    'in-n-out', 'jack in the box', 'whataburger', 'fatburger', 'johnny rockets', 'smashburger'
-  ],
-  pizza: ['pizza hut', 'domino', "domino's", 'papa john', 'little caesars', 'sbarro'],
-  coffee: ['starbucks', 'costa', 'tim hortons', 'dunkin', 'gloria jean', 'arabica', 'caribou coffee'],
-  vegan: ['by chloe', 'vegan', 'plant', 'greens'],
-  chicken: ['kfc', 'popeyes', 'jollibee', 'wingstop'],
-  sushi: ['sushi', 'wagamama', 'itsu'],
-  sandwich: ['subway', 'jimmy john', 'firehouse subs', 'potbelly']
+const chainsByKeyword = {
+  burger: ['mcdonald', 'burger king', 'kfc', 'five guys', 'wendy', 'hardee', 'shake shack', 'in-n-out', 'carls jr', 'jack in the box'],
+  pizza: ['domino', 'pizza hut', 'papa john', 'little caesars', 'papa murphy', 'sbarro'],
+  sushi: ['sushi', 'wagamama', 'yo! sushi', 'itzu', 'itsu'],
+  coffee: ['starbuck', 'costacoffee', 'costa', 'dunkin', 'tim hortons', 'gloria jean'],
+  vegan: ['vegan', 'plant'],
+  gluten: ['gluten'],
 };
 
-// Normalize helpers
-function normStr(v) { return (v ?? '').toString().toLowerCase(); }
-function normArr(a) {
-  if (!a) return [];
-  if (Array.isArray(a)) return a.map(x => normStr(x));
-  return normStr(a).split(/[|,;/]/).map(x => x.trim()).filter(Boolean);
-}
-
-function getName(r) { return r.name ?? r.title ?? ''; }
-function getAddress(r) { return r.address ?? r.location_text ?? r.desc ?? ''; }
-function getTags(r) {
-  // collect potential category/cuisine fields
-  return [
-    ...normArr(r.tags),
-    ...normArr(r.categories),
-    ...normArr(r.category),
-    ...normArr(r.cuisine),
-    ...normArr(r.type),
-  ];
-}
-function isRestaurant(r) {
-  const tags = getTags(r);
-  const t = normStr(r.type);
-  const cat = normStr(r.category);
-  const any = [t, cat, ...tags].join(' ');
-  return any.includes('restaurant') || any.includes('food') || any.includes('diner') || any.includes('eatery');
-}
-
-function getLngLat(r) {
-  // Accept many shapes
-  const p = r.position ?? r.coords ?? r.location ?? null;
-  if (p && typeof p.lng === 'number' && typeof p.lat === 'number') return [p.lng, p.lat];
-  if (p && Array.isArray(p) && p.length === 2) return [p[0], p[1]];     // [lng, lat]
-  if (typeof r.longitude === 'number' && typeof r.latitude === 'number') return [r.longitude, r.latitude];
-  // Some datasets store as [lat,lng]
-  if (Array.isArray(r) && r.length === 2 && typeof r[0] === 'number' && typeof r[1] === 'number') {
-    return [r[1], r[0]];
-  }
+function normalizePoint(p) {
+  if (!p) return null;
+  if (typeof p.lat === 'number' && typeof p.lng === 'number') return [p.lng, p.lat];
+  if (p.location && typeof p.location.lat === 'number' && typeof p.location.lng === 'number')
+    return [p.location.lng, p.location.lat];
+  if (Array.isArray(p) && p.length === 2) return [p[0], p[1]]; // [lng,lat]
+  if (typeof p.longitude === 'number' && typeof p.latitude === 'number') return [p.longitude, p.latitude];
   return null;
 }
 
-// Simple keyword → score function
-function scoreRestaurant(r, qWords, cuisine) {
-  const name = normStr(getName(r));
-  const tags = getTags(r);
-  const joined = (name + ' ' + tags.join(' '));
+function includesAny(haystack, needles) {
+  const s = String(haystack || '').toLowerCase();
+  return needles.some(n => s.includes(n));
+}
+
+function scoreItem(it, q, diet) {
+  // Base text fields
+  const name = String(it.name || it.title || '').toLowerCase();
+  const cuisine = String(it.cuisine || it.categories || '').toLowerCase();
+  const desc = String(it.description || '').toLowerCase();
+
+  // Keyword match
   let score = 0;
+  if (q) {
+    const kw = q.toLowerCase();
+    if (name.includes(kw)) score += 3;
+    if (cuisine.includes(kw)) score += 2;
+    if (desc.includes(kw)) score += 1;
 
-  // Base: restaurants only
-  if (!isRestaurant(r)) return -1;
-
-  // Cuisine select boosts
-  if (cuisine) {
-    if (joined.includes(cuisine)) score += 3;
+    // Known chains for that keyword
+    const chains = chainsByKeyword[kw] || [];
+    if (chains.length && includesAny(name, chains)) score += 4;
+  } else {
+    // No keyword: slight base score so we still show reasonable ordering
+    score += 1;
   }
 
-  // Query words
-  for (const w of qWords) {
-    if (!w) continue;
-    if (name.includes(w)) score += 4;          // strong match on name
-    if (joined.includes(w)) score += 2;        // weaker match on tags
-    // brand hints (e.g., "burger" boosts 'mcdonald', etc.)
-    const hints = BRAND_HINTS[w] || [];
-    for (const h of hints) {
-      if (joined.includes(h)) score += 5;
+  // Diet filters if provided (loose match)
+  if (diet) {
+    const d = diet.toLowerCase();
+    if (name.includes(d) || cuisine.includes(d) || desc.includes(d)) {
+      score += 2;
+    } else {
+      // Penalize if diet is requested but not found
+      score -= 2;
     }
   }
-
-  // Tiny bias so non-matches aren’t all equal
-  if (score === 0 && qWords.length === 0 && !cuisine) score = 1;
 
   return score;
 }
 
-function filterAndSort(data, q, cuisine) {
-  const qWords = normStr(q).split(/\s+/).filter(Boolean);
-  // If they typed "burgers", treat as "burger" too
-  const stem = (s) => s.replace(/s\b/g, '');
-  const stems = qWords.map(stem);
-
-  return data
-    .map(r => ({ r, s: scoreRestaurant(r, stems, cuisine ? normStr(cuisine) : '') }))
-    .filter(x => x.s > 0)
-    .sort((a,b) => b.s - a.s)
-    .map(x => x.r);
-}
-
-// Map & UI state
-const state = {
-  map: null,
-  data: [],
-  markers: []
-};
-
-function clearMarkers() {
-  state.markers.forEach(m => m.remove());
-  state.markers = [];
-}
-
 function renderList(items) {
   const list = $('#list');
+  if (!list) return;
   list.innerHTML = '';
-  (items.length ? items : []).slice(0, 60).forEach(it => {
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.className = 'muted';
+    empty.textContent = 'No restaurants found.';
+    list.appendChild(empty);
+    return;
+  }
+  items.slice(0, 100).forEach(it => {
     const el = document.createElement('div');
     el.className = 'item';
-    const name = getName(it) || 'Restaurant';
-    const addr = getAddress(it);
-    const tags = getTags(it).filter(Boolean).slice(0, 4);
     el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-        <strong>${name}</strong>
-        ${tags.length ? `<span class="muted" style="font-size:.85rem">${tags.join(' • ')}</span>` : ''}
-      </div>
-      ${addr ? `<div class="muted" style="font-size:.9rem">${addr}</div>` : ''}
+      <div style="font-weight:700">${it.name || it.title || 'Restaurant'}</div>
+      <div class="muted" style="font-size:.9rem">${it.address || it.cuisine || ''}</div>
     `;
     list.appendChild(el);
   });
-  if (!items.length) list.innerHTML = '<div class="item muted">No restaurants found.</div>';
 }
 
-function plot(items) {
-  clearMarkers();
-  const bounds = new mapboxgl.LngLatBounds();
+function plot(map, items) {
+  // Remove old markers
+  if (!map._am_markers) map._am_markers = [];
+  map._am_markers.forEach(m => m.remove());
+  map._am_markers = [];
 
-  for (const it of items) {
-    const lnglat = getLngLat(it);
-    if (!lnglat) continue;
+  const bounds = new mapboxgl.LngLatBounds();
+  let hasBounds = false;
+
+  items.forEach(it => {
+    const pt = normalizePoint(it.position || it.coords || it.location || it);
+    if (!pt) return;
+    const [lng, lat] = pt;
 
     const marker = new mapboxgl.Marker({ color: '#009688' })
-      .setLngLat(lnglat)
-      .setPopup(
-        new mapboxgl.Popup({ offset: 16 }).setHTML(`
-          <strong>${getName(it) || 'Restaurant'}</strong><br/>
-          ${getAddress(it) || ''}
-        `)
-      )
-      .addTo(state.map);
+      .setLngLat([lng, lat])
+      .setPopup(new mapboxgl.Popup({ offset: 16 }).setHTML(
+        `<strong>${it.name || it.title || 'Restaurant'}</strong><br>${it.address || ''}`
+      ))
+      .addTo(map);
 
-    state.markers.push(marker);
-    bounds.extend(lnglat);
-  }
+    map._am_markers.push(marker);
+    bounds.extend([lng, lat]);
+    hasBounds = true;
+  });
 
   $('#resultCount').textContent = `${items.length} result${items.length === 1 ? '' : 's'}`;
 
-  if (!bounds.isEmpty()) {
-    state.map.fitBounds(bounds, { padding: 40, maxZoom: 15 });
-  }
+  // Fit bounds if we plotted anything; else keep current view
+  if (hasBounds) map.fitBounds(bounds, { padding: 40, maxZoom: 15 });
 }
 
 async function loadData() {
-  const res = await fetch('/data/restaurants.json');
-  const json = await res.json();
-  // Keep only items that look like restaurants
-  state.data = Array.isArray(json) ? json.filter(isRestaurant) : [];
+  // Ensure file exists at /data/restaurants.json in your repo
+  const res = await fetch('/data/restaurants.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to load /data/restaurants.json');
+  return res.json();
 }
 
-function applyFilters() {
-  const q = $('#q')?.value || '';
-  const cuisine = $('#cuisine')?.value || '';
-  const items = filterAndSort(state.data, q, cuisine);
-  renderList(items);
-  plot(items);
+function filterAndRank(raw, q, diet) {
+  const kw = (q || '').trim().toLowerCase();
+
+  // Keep items that at least have a point and a name
+  const candidates = raw.filter(it => normalizePoint(it.position || it.coords || it.location || it) && (it.name || it.title));
+
+  const scored = candidates.map(it => ({
+    item: it,
+    score: scoreItem(it, kw, diet)
+  }));
+
+  // If there is a keyword, drop very poor matches
+  const filtered = kw ? scored.filter(x => x.score > 0) : scored;
+
+  // Sort by score desc, then name
+  filtered.sort((a,b) => (b.score - a.score) || String(a.item.name || a.item.title).localeCompare(String(b.item.name || b.item.title)));
+
+  return filtered.map(x => x.item);
 }
 
 async function init() {
-  // Create map
-  const start = [55.2708, 25.2048]; // Dubai default
-  state.map = new mapboxgl.Map({
+  // Mapbox init
+  mapboxgl.accessToken = window.MAPBOX_TOKEN;
+  const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
-    center: start,
+    center: [55.2708, 25.2048], // Dubai default
     zoom: 11
   });
+  map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+  map.addControl(new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'top-right');
 
-  state.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-  state.map.addControl(new mapboxgl.GeolocateControl({
-    positionOptions: { enableHighAccuracy: true },
-    trackUserLocation: true
-  }), 'top-right');
+  // Data
+  const raw = await loadData();
 
-  // Try to center on user if allowed
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        state.map.setCenter([longitude, latitude]);
-        state.map.setZoom(13);
-      },
-      () => {}
-    );
-  }
+  // Initial state: show everything
+  const initial = filterAndRank(raw, '', '');
+  plot(map, initial);
+  renderList(initial);
 
-  await loadData();
-  applyFilters();
-
-  $('#apply')?.addEventListener('click', applyFilters);
-  $('#clear')?.addEventListener('click', () => {
-    $('#q').value = '';
-    $('#cuisine').value = '';
-    applyFilters();
+  // Wire controls
+  $('#apply')?.addEventListener('click', () => {
+    const q = $('#q')?.value || '';
+    const diet = $('#diet')?.value || '';
+    const res = filterAndRank(raw, q, diet);
+    plot(map, res);
+    renderList(res);
   });
 
-  // Enter to apply
-  $('#q')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+  $('#clear')?.addEventListener('click', () => {
+    if ($('#q')) $('#q').value = '';
+    if ($('#diet')) $('#diet').value = '';
+    const res = filterAndRank(raw, '', '');
+    plot(map, res);
+    renderList(res);
   });
 }
 
-init().catch(err => console.error('Map init error:', err));
+init().catch(err => console.error('Search page error:', err));
