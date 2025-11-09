@@ -206,3 +206,4 @@ label { font-size: .95rem; color: var(--muted); }
   box-shadow: var(--shadow); display: none;
 }
 .toast.show { display: block; }
+#map { height: 520px; border-radius: var(--radius); }
