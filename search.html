@@ -1,38 +1,67 @@
-<!doctype html><html><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Search — AllerMate</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css"/></head><body><header class="header">
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Search — AllerMate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+
+<body>
+
+<header class="header">
   <div class="container bar">
     <a href="index.html" class="brand">
-  <img src="assets/logo.png" alt="AllerMate logo" height="78" style="display:block">
-</a>
+      <img src="assets/logo.png" alt="AllerMate logo" height="78" style="display:block">
+    </a>
+
     <nav aria-label="Primary" class="desktop-only">
       <a href="index.html">Home</a>
-      <a href="search.html">Search</a>
+      <a href="search.html" class="active">Search</a>
       <a href="account.html">Account</a>
       <a href="history.html">History</a>
       <a href="signin.html">Sign In</a>
     </nav>
-    <button class="mobile-only button ghost" id="menuBtn" aria-label="Open menu">Menu</button>
+
+    <button class="mobile-only button ghost" id="menuBtn" aria-label="Open menu">
+      Menu
+    </button>
   </div>
 </header>
+
+
+<!-- MAIN CONTENT -->
 <section class="container" style="padding:36px 0">
-  <div class="grid two">
-    <div class="card">
+  <div class="grid two" style="align-items:start">
+
+    <!-- MAP + FILTERS -->
+    <section class="card" style="grid-column: 1 / -1">
       <h1>Search</h1>
-      <p class="muted">Drop your existing map & place search here. The shell is ready.</p>
-      <div class="actions"><a class="button" href="index.html">← Home</a></div>
-    </div>
-    <div class="card">
-      <h3>Tips</h3>
-      <ul>
-        <li>You can use your current API-based search as-is.</li>
-        <li>If you want me to wire live filtering UI, send me the endpoint details.</li>
-      </ul>
-    </div>
+      <p class="muted">Find allergen-friendly locations near you.</p>
+
+      <div class="row" style="gap:8px;margin:10px 0 12px">
+        <input class="input" id="q" placeholder="Search by name…" style="max-width:280px">
+        <button class="button" id="apply">Apply</button>
+      </div>
+
+      <!-- Where Mapbox will render -->
+      <div id="map"></div>
+
+      <p class="muted" id="resultCount" style="margin-top:8px"></p>
+    </section>
+
+    <!-- SIDE LIST -->
+    <aside class="card" style="grid-column:1/-1">
+      <h3>Results</h3>
+      <div id="list" class="list"></div>
+    </aside>
+
   </div>
 </section>
+
+
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container row" style="justify-content:space-between">
     <div>© <span id="y"></span> AllerMate</div>
@@ -44,18 +73,41 @@
       <a href="signin.html">Sign In</a>
     </div>
   </div>
-  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
 </footer>
+
+
+<!-- BOTTOM TABS (mobile) -->
 <nav class="tabbar" aria-label="Bottom navigation">
   <a href="index.html">Home</a>
-  <a href="search.html">Search</a>
+  <a href="search.html" class="active">Search</a>
   <a href="account.html">Account</a>
   <a href="history.html">History</a>
 </nav>
+
+
+<!-- MAPBOX (CSS + JS) -->
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+
+<!-- Your Mapbox public token -->
 <script>
-window.SUPABASE_URL='https://iabawpqxcoxfstyaufui.supabase.co';
-window.SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+  window.MAPBOX_TOKEN = "pk.eyJ1IjoiZHNhNTE3OTgxIiwiYSI6ImNtZzRldWYyYzFoajkybHNjMGdsYzFxZnkifQ.iVr5_KbxuxwWWLTJDf9WrQ";
 </script>
+
+<!-- Page map logic -->
+<script type="module" src="js/search-mapbox.js"></script>
+
+<!-- Existing scripts -->
+<script>
+  window.SUPABASE_URL='https://iabawpqxcoxfstyaufui.supabase.co';
+  window.SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+</script>
+
 <script type="module" src="js/supa.js"></script>
 <script type="module" src="js/app.js"></script>
-</body></html>
+
+</body>
+</html>
