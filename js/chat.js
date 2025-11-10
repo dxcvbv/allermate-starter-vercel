@@ -10,10 +10,7 @@ const form = document.getElementById('chatForm');
 const input = document.getElementById('chatInput');
 const typingEl = document.getElementById('typing');
 
-function scrollToBottom() {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
+function scrollToBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
 function renderBubble(role, text) {
   const div = document.createElement('div');
   div.className = `bubble ${role === 'user' ? 'user' : 'bot'}`;
@@ -35,12 +32,7 @@ async function getContext() {
     .select('survey, full_name')
     .eq('user_id', user.id)
     .single();
-  return {
-    user_id: user.id,
-    email: user.email,
-    full_name: profile?.full_name || null,
-    survey: profile?.survey || null
-  };
+  return { user_id: user.id, email: user.email, full_name: profile?.full_name || null, survey: profile?.survey || null };
 }
 
 form.addEventListener('submit', async (e) => {
@@ -57,28 +49,20 @@ form.addEventListener('submit', async (e) => {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: text,
-        context: {
-          email: ctx.email,
-          full_name: ctx.full_name,
-          survey: ctx.survey
-        }
-      })
+      body: JSON.stringify({ message: text, context: { email: ctx.email, full_name: ctx.full_name, survey: ctx.survey } })
     });
 
+    const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg = `Chat API error: ${res.status}`;
-      renderBubble('bot', msg);
+      renderBubble('bot', `Chat API error: ${payload?.error || res.status}`);
       typingEl.style.display = 'none';
+      console.error('Chat API detail:', payload?.detail);
       return;
     }
 
-    const data = await res.json();
-    const reply = data.reply || data.message || 'Sorry, I did not receive a response.';
+    const reply = payload.reply || 'Sorry, I did not receive a response.';
     renderBubble('bot', reply);
     typingEl.style.display = 'none';
-
     await insertHistory(ctx.user_id, text, reply);
   } catch (err) {
     typingEl.style.display = 'none';
