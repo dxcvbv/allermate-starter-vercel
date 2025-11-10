@@ -1,59 +1,52 @@
-// api/chat.js
+// /api/chat.js
 export default async function handler(req, res) {
-  // quick health check in a browser
-  if (req.method === 'GET') return res.status(200).json({ status: 'ok' });
-
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST, GET');
-    return res.status(405).json({ error: 'POST only' });
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
   }
-
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'Missing OPENAI_API_KEY' });
-
-    // Vercel raw body can be Buffer/string. Normalize to object.
-    let body = req.body;
-    if (Buffer.isBuffer(body)) body = body.toString('utf8');
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body || '{}'); }
-      catch (e) { return res.status(400).json({ error: 'Invalid JSON body' }); }
+    const { message, context } = req.body || {};
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: 'Missing OPENAI_API_KEY' });
     }
-    body = body || {};
-    const { messages = [], profile = {} } = body;
+    if (!message) {
+      return res.status(400).json({ error: 'No message provided' });
+    }
 
-    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    const system = [
+      'You are AllerMate, an allergy-safety assistant.',
+      'Be practical and cautious; suggest questions to ask staff.',
+      context?.survey ? `User allergens: ${JSON.stringify(context.survey)}` : ''
+    ].filter(Boolean).join('\n');
+
+    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
+      headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',     // OK to change to 'gpt-5-mini' later
-        temperature: 0.4,
-        max_tokens: 300,
+        model: 'gpt-4o-mini',
         messages: [
-          {
-            role: 'system',
-            content:
-              `You are “AllerMate Coach,” a careful allergy assistant. Do NOT diagnose or prescribe. ` +
-              `If anaphylaxis is suspected, advise immediate emergency care and following their prescribed epinephrine plan. ` +
-              `Personalize using this profile (may be empty): ${JSON.stringify(profile).slice(0, 800)}`
-          },
-          ...messages
-        ]
+          { role: 'system', content: system },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.3
       })
     });
 
-    if (!r.ok) {
-      const details = await r.text();
-      return res.status(502).json({ error: 'OpenAI error', details });
+    if (!completion.ok) {
+      const errText = await completion.text();
+      return res.status(500).json({ error: 'OpenAI error', detail: errText });
     }
 
-    const data = await r.json();
-    const answer = data.choices?.[0]?.message?.content?.trim() || 'No answer.';
-    return res.status(200).json({ answer });
+    const data = await completion.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || 'Sorry, no response.';
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(200).json({ reply });
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'Unknown error' });
+    return res.status(500).json({ error: 'Server error', detail: String(e) });
   }
 }
