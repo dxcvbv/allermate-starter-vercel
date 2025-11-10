@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AllerMate — Home</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body class="container">
+  <header class="site-header">
+    <a href="/home.html" class="brand">AllerMate</a>
+    <nav class="user-nav">
+      <a href="/search.html">Search</a>
+      <a href="/account.html">Account</a>
+      <button id="signOut" class="btn subtle">Sign out</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero card">
+      <h1>Hi, <span id="greetingName">there</span> 👋</h1>
+      <p class="muted">What would you like to do today?</p>
+      <div class="actions grid">
+        <a class="btn primary" href="/search.html">Find allergy‑friendly places</a>
+        <a class="btn" href="/search.html#map">Open map near me</a>
+        <a class="btn" href="/chat.html">Ask AllerMate</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Recent activity</h2>
+      <ul id="recentList" class="list"></ul>
+      <p class="muted" id="recentEmpty" style="display:none;">No recent activity yet.</p>
+    </section>
+  </main>
+
+  <script type="module" src="/js/home.js"></script>
+</body>
+</html>

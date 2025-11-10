@@ -1,13 +1,38 @@
-<!doctype html><html><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Search — AllerMate</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css"/></head><body><header class="header">
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Search — AllerMate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css"/>
+  <!-- Mapbox GL (CSS) -->
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css">
+  <style>
+    /* Page-specific layout */
+    .search-wrap { display:grid; grid-template-columns: 1.2fr 1fr; gap:16px; }
+    @media (max-width: 1100px){ .search-wrap { grid-template-columns: 1fr; } }
+    #map { height: 560px; border-radius: var(--radius); overflow: hidden; }
+    .search-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .pill { display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.06); background:#fff; font-weight:600 }
+    .list { display:flex; flex-direction:column; gap:12px; }
+    .result { background: var(--card); border-radius: 14px; padding: 12px 14px; border:1px solid rgba(0,0,0,.06); box-shadow: var(--shadow); }
+    .result h4 { margin: 0 0 4px; font-size: 16px; }
+    .result .meta { color: var(--muted); font-size: .92rem }
+    .result .row { display:flex; gap:8px; align-items:center; }
+    .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:.78rem; background:#F1F7F6; color:#085; font-weight:700 }
+    .count { color: var(--muted); font-weight:600 }
+  </style>
+</head>
+<body>
+<header class="header">
   <div class="container bar">
-    <a href="index.html" class="brand"><img src="assets/logo.svg" alt="AllerMate logo" height="28"></a>
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="AllerMate logo" height="56" style="display:block">
+    </a>
     <nav aria-label="Primary" class="desktop-only">
       <a href="index.html">Home</a>
-      <a href="search.html">Search</a>
+      <a href="search.html" class="active">Search</a>
       <a href="account.html">Account</a>
       <a href="history.html">History</a>
       <a href="signin.html">Sign In</a>
@@ -15,22 +40,53 @@
     <button class="mobile-only button ghost" id="menuBtn" aria-label="Open menu">Menu</button>
   </div>
 </header>
-<section class="container" style="padding:36px 0">
-  <div class="grid two">
-    <div class="card">
-      <h1>Search</h1>
-      <p class="muted">Drop your existing map & place search here. The shell is ready.</p>
-      <div class="actions"><a class="button" href="index.html">← Home</a></div>
+
+<main class="container" style="padding:20px 0 10px">
+  <section class="card" style="margin-bottom:14px">
+    <h1>Search</h1>
+    <p class="muted">Find restaurants. Filter by keyword (e.g., <em>burger</em>, <em>pizza</em>, <em>vegan</em>). Click pins for details.</p>
+
+    <div class="search-controls" style="margin:10px 0">
+      <input id="q" class="input" placeholder="Try: burger, pizza, hot dog, vegan…" style="max-width:420px">
+      <select id="diet" class="input" style="max-width:220px">
+        <option value="">Any diet</option>
+        <option>Vegan</option>
+        <option>Vegetarian</option>
+        <option>Gluten-free</option>
+        <option>Dairy-free</option>
+      </select>
+      <button id="apply" class="button">Apply</button>
+      <button id="clear" class="button ghost">Clear</button>
+      <span id="count" class="count">0 results</span>
     </div>
-    <div class="card">
-      <h3>Tips</h3>
-      <ul>
-        <li>You can use your current API-based search as-is.</li>
-        <li>If you want me to wire live filtering UI, send me the endpoint details.</li>
-      </ul>
-    </div>
+  </section>
+
+  <div class="search-wrap">
+    <!-- LEFT: Map -->
+    <section class="card">
+      <div id="map"></div>
+    </section>
+
+    <!-- RIGHT: Results -->
+    <aside class="card">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Results</h3>
+        <span id="countTop" class="count">0 results</span>
+      </div>
+      <div id="list" class="list" style="margin-top:10px"></div>
+
+      <section style="margin-top:14px">
+        <h4>Tips</h4>
+        <ul class="muted">
+          <li>Use keywords: <em>burger</em>, <em>pizza</em>, <em>sushi</em>, <em>vegan</em>, <em>gluten</em>, etc.</li>
+          <li>We rank by name + cuisine + known chains for the keyword.</li>
+          <li>Data is loaded from <code>/data/restaurants.json</code>.</li>
+        </ul>
+      </section>
+    </aside>
   </div>
-</section>
+</main>
+
 <footer class="footer">
   <div class="container row" style="justify-content:space-between">
     <div>© <span id="y"></span> AllerMate</div>
@@ -44,16 +100,23 @@
   </div>
   <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
 </footer>
+
 <nav class="tabbar" aria-label="Bottom navigation">
   <a href="index.html">Home</a>
-  <a href="search.html">Search</a>
+  <a href="search.html" class="active">Search</a>
   <a href="account.html">Account</a>
   <a href="history.html">History</a>
 </nav>
+
+<!-- Mapbox GL (JS) -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+
+<!-- Public token (safe) -->
 <script>
-window.SUPABASE_URL='https://iabawpqxcoxfstyaufui.supabase.co';
-window.SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYmF3cHF4Y294ZnN0eWF1ZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMjA3ODMsImV4cCI6MjA3NzY5Njc4M30.6jPNWec0EZMawGRFa9Jz2nehztHIFVvwER8Ljh-HK9g';
+  window.MAPBOX_TOKEN = (window.MAPBOX_TOKEN || 'pk.eyJ1IjoiZHNhNTE3OTgxIiwiYSI6ImNtZzRldWYyYzFoajkybHNjMGdsYzFxZnkifQ.iVr5_KbxuxwWWLTJDf9WrQ');
 </script>
-<script type="module" src="js/supa.js"></script>
-<script type="module" src="js/app.js"></script>
-</body></html>
+
+<!-- Page logic -->
+<script type="module" src="js/search-mapbox.js"></script>
+</body>
+</html>

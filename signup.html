@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AllerMate — Sign up</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body class="container">
+  <header class="site-header">
+    <a href="/index.html" class="brand">AllerMate</a>
+  </header>
+
+  <main class="auth-card">
+    <h1>Create your account</h1>
+    <p class="muted">Already have an account? <a href="/signin.html">Sign in</a></p>
+
+    <form id="signupForm" class="form">
+      <label>Email
+        <input type="email" id="email" required autocomplete="email" />
+      </label>
+
+      <label>Password
+        <div class="password-field">
+          <input type="password" id="password" required minlength="8" autocomplete="new-password" />
+          <button type="button" id="togglePwd" aria-label="Show password">👁</button>
+        </div>
+        <small class="muted">At least 8 characters.</small>
+      </label>
+
+      <label>Full name
+        <input type="text" id="full_name" required autocomplete="name" />
+      </label>
+
+      <label>Account description (optional)
+        <textarea id="description" rows="3" placeholder="e.g., Parent of a child with sesame allergy"></textarea>
+      </label>
+
+      <button id="submitBtn" class="btn primary" type="submit">Create account</button>
+      <p id="error" class="error" role="alert" style="display:none;"></p>
+    </form>
+  </main>
+
+  <script type="module">
+    import { signUp } from '/js/auth.js';
+
+    const form = document.getElementById('signupForm');
+    const errEl = document.getElementById('error');
+    const btn = document.getElementById('submitBtn');
+    const toggle = document.getElementById('togglePwd');
+    const pwd = document.getElementById('password');
+
+    toggle.addEventListener('click', () => {
+      const t = pwd.getAttribute('type') === 'password' ? 'text' : 'password';
+      pwd.setAttribute('type', t);
+      toggle.textContent = t === 'password' ? '👁' : '🙈';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      try {
+        const payload = {
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+          full_name: document.getElementById('full_name').value.trim(),
+          description: document.getElementById('description').value.trim(),
+        };
+        await signUp(payload);
+        // Go to confirm screen
+        const params = new URLSearchParams({ email: payload.email });
+        window.location.assign('/confirm.html?' + params.toString());
+      } catch (err) {
+        errEl.textContent = err.message || String(err);
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
