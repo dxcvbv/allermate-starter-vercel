@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AllerMate — Account</title>
   <link rel="stylesheet" href="/css/app.css"/>
+  <link rel="stylesheet" href="/css/patch.css"/>
 </head>
 <body class="container">
   <header class="site-header">
@@ -19,24 +20,24 @@
     <section class="card profile">
       <div class="avatar" id="avatar">A</div>
       <div class="info">
-        <h2 id="fullName">—</h2>
-        <p><span id="email">—</span></p>
-        <p class="muted" id="description">—</p>
+        <h2 id="fullName" style="margin:0;">—</h2>
+        <p style="margin:6px 0 2px 0;"><span id="email" class="muted">—</span></p>
+        <p class="muted" id="description" style="margin:0;">—</p>
       </div>
       <button id="editProfileBtn" class="btn">Edit profile</button>
     </section>
 
     <details class="card">
       <summary>Your Survey Results</summary>
-      <div id="surveyResults"></div>
+      <div id="surveyResults" style="margin-top:10px;"></div>
       <div class="mt-2"><a class="btn" href="/survey.html">Edit survey</a></div>
     </details>
 
     <details class="card">
       <summary>Your Activity History</summary>
-      <div class="toolbar">
-        <label>Filter</label>
-        <select id="historyType">
+      <div class="toolbar" style="margin:10px 0; display:flex; gap:10px; align-items:center;">
+        <label class="muted">Filter</label>
+        <select id="historyType" class="input" style="max-width:200px;">
           <option value="">All</option>
           <option value="search">Searches</option>
           <option value="chat">Chats</option>
@@ -50,19 +51,19 @@
   </main>
 
   <dialog id="editDialog">
-    <form method="dialog" class="card">
-      <h3>Edit profile</h3>
+    <form method="dialog" class="card" style="max-width:480px">
+      <h3 style="margin-top:0;">Edit profile</h3>
       <label>Full name
-        <input type="text" id="edit_full_name" />
+        <input type="text" id="edit_full_name" class="input"/>
       </label>
       <label>Account description
-        <textarea id="edit_description" rows="3"></textarea>
+        <textarea id="edit_description" rows="3" class="input"></textarea>
       </label>
-      <menu>
+      <menu style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
         <button value="cancel" class="btn subtle">Cancel</button>
         <button id="saveProfile" value="default" class="btn primary">Save</button>
       </menu>
-      <p id="editError" class="error" style="display:none;"></p>
+      <p id="editError" class="error" style="display:none; color:#b91c1c;"></p>
     </form>
   </dialog>
 
