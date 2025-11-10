@@ -5,85 +5,130 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Allergy Survey — AllerMate</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <link rel="stylesheet" href="/css/patch.css"/>
   <style>
-    .wrap{max-width:900px;margin:28px auto;padding:16px}
+    .wrap{max-width:980px;margin:20px auto;padding:0 16px}
     form .row{display:grid;gap:8px;margin:10px 0}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     @media(max-width:800px){.two{grid-template-columns:1fr}}
   </style>
 </head>
-<body>
-<header class="nav">
-  <div class="brand">AllerMate</div>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="welcome.html">Welcome</a>
-    <a href="search.html">Search</a>
-    <a href="signin.html">Sign In</a>
-    <a href="account.html">Account</a>
-  </nav>
-</header>
+<body class="container">
+  <header class="site-header">
+    <a href="/home.html" class="brand">AllerMate</a>
+    <nav class="user-nav">
+      <a href="/search.html">Search</a>
+      <a href="/account.html">Account</a>
+    </nav>
+  </header>
 
-<main class="wrap card">
-  <h1>Allergy Survey</h1>
-  <form id="form">
-    <div class="row">
-      <label>Main allergies (comma-separated)</label>
-      <input class="input" id="allergies" placeholder="peanut, sesame, egg"/>
-    </div>
-    <div class="row two">
-      <div>
-        <label>Intolerances</label>
-        <input class="input" id="intolerances" placeholder="lactose, gluten"/>
-      </div>
-      <div>
-        <label>Diet</label>
-        <select class="input" id="diet">
-          <option value="">None</option>
-          <option>Vegan</option><option>Vegetarian</option>
-          <option>Halal</option><option>Kosher</option>
-        </select>
-      </div>
-    </div>
-    <div class="row two">
-      <div>
-        <label>Epinephrine auto-injector</label>
-        <select class="input" id="epi"><option>No</option><option>Yes</option></select>
-      </div>
-      <div>
-        <label>Preferred substitutions</label>
-        <input class="input" id="subs" placeholder="oat milk, egg-free mayo"/>
-      </div>
-    </div>
-    <div class="row">
-      <label>Notes</label>
-      <textarea class="input" id="notes" rows="3" placeholder="Cross-contact concerns, restaurant tips, etc."></textarea>
-    </div>
-    <button class="button" type="submit">Save</button>
-    <a class="button ghost" href="account.html">Back to Account</a>
-  </form>
-</main>
+  <main>
+    <section class="card wrap">
+      <h1 style="margin-top:0;">Allergy Survey</h1>
 
-<script>
-const s = JSON.parse(localStorage.getItem('allermate:survey')||'{}');
-for (const k of ['allergies','intolerances','diet','epi','subs','notes']) {
-  const el = document.getElementById(k); if (el && s[k]) el.value = s[k];
-}
-document.getElementById('form').addEventListener('submit', e=>{
-  e.preventDefault();
-  const out = {
-    allergies: document.getElementById('allergies').value.trim(),
-    intolerances: document.getElementById('intolerances').value.trim(),
-    diet: document.getElementById('diet').value,
-    epi: document.getElementById('epi').value,
-    subs: document.getElementById('subs').value.trim(),
-    notes: document.getElementById('notes').value.trim()
-  };
-  localStorage.setItem('allermate:survey', JSON.stringify(out));
-  alert('Survey saved.');
-  location.href = 'account.html';
-});
-</script>
+      <form id="form">
+        <div class="row">
+          <label>Main allergies (comma-separated)
+            <input id="allergies" class="input" type="text" placeholder="peanut, sesame, egg">
+          </label>
+        </div>
+
+        <div class="two">
+          <label>Intolerances
+            <input id="intolerances" class="input" type="text" placeholder="lactose, gluten">
+          </label>
+
+          <label>Diet
+            <select id="diet" class="input">
+              <option>None</option>
+              <option>Vegetarian</option>
+              <option>Vegan</option>
+              <option>Pescatarian</option>
+              <option>Halal</option>
+              <option>Kosher</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two">
+          <label>Preferred substitutions
+            <input id="subs" class="input" type="text" placeholder="oat milk, egg-free mayo">
+          </label>
+
+          <label>Epinephrine auto-injector
+            <select id="epi" class="input">
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row">
+          <label>Notes
+            <textarea id="notes" class="input" rows="3" placeholder="Cross-contact concerns, restaurant tips, etc."></textarea>
+          </label>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn primary" type="submit">Save</button>
+          <a class="btn" href="/account.html">Back to Account</a>
+          <span id="status" class="muted" style="margin-left:10px;"></span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script type="module">
+    import { supabase } from '/js/supa.js';
+    import { requireAuth } from '/js/auth.js';
+
+    requireAuth();
+
+    // Prefill from localStorage
+    const s = JSON.parse(localStorage.getItem('allermate:survey')||'{}');
+    for (const k of ['allergies','intolerances','diet','epi','subs','notes']) {
+      const el = document.getElementById(k); if (el && s[k]) el.value = s[k];
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const out = {
+        allergies: document.getElementById('allergies').value.trim(),
+        intolerances: document.getElementById('intolerances').value.trim(),
+        diet: document.getElementById('diet').value,
+        epi: document.getElementById('epi').value,
+        subs: document.getElementById('subs').value.trim(),
+        notes: document.getElementById('notes').value.trim(),
+      };
+      localStorage.setItem('allermate:survey', JSON.stringify(out));
+      const status = document.getElementById('status');
+      status.textContent = 'Saved locally. Syncing…';
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Store a normalized JSON in profiles.survey
+          const survey = {
+            allergens: out.allergies ? out.allergies.split(',').map(s=>s.trim()).filter(Boolean) : [],
+            intolerances: out.intolerances ? out.intolerances.split(',').map(s=>s.trim()).filter(Boolean) : [],
+            diet: out.diet || 'None',
+            epi: out.epi === 'Yes',
+            substitutions: out.subs ? out.subs.split(',').map(s=>s.trim()).filter(Boolean) : [],
+            notes: out.notes || ''
+          };
+          await supabase
+            .from('profiles')
+            .upsert({ user_id: user.id, survey }, { onConflict: 'user_id' });
+          status.textContent = 'Saved ✓';
+        } else {
+          status.textContent = 'Saved locally (not signed in).';
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Saved locally; server sync failed.';
+      }
+    });
+  </script>
 </body>
 </html>
