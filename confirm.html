@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AllerMate — Confirm your email</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body class="container">
+  <main class="auth-card">
+    <h1>Confirm your email</h1>
+    <p>We've sent a confirmation link to <strong id="email">your email</strong>. Open it on this device to finish setting up your account.</p>
+    <p class="muted">After confirming, you'll be redirected to your Home.</p>
+    <a class="btn" href="/signin.html">Back to Sign in</a>
+  </main>
+  <script type="module">
+    const sp = new URLSearchParams(window.location.search);
+    const email = sp.get('email');
+    if (email) document.getElementById('email').textContent = email;
+  </script>
+</body>
+</html>
